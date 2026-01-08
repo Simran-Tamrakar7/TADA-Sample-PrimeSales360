@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Management SPA</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  width: 95%;
+  max-width: 1000px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+}
+h2, h3 {
+  color: #333;
+}
+.nav-tabs {
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 20px;
+}
+.nav-tabs div {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  margin-right: 5px;
+  background: #eee;
+}
+.nav-tabs .active {
+  background: #fff;
+  border: 2px solid #ccc;
+  border-bottom: none;
+}
+.screen {
+  display: none;
+}
+.screen.active {
+  display: block;
+}
+section {
+  margin-bottom: 25px;
+}
+label {
+  display: block;
+  margin: 8px 0 3px;
+  font-weight: bold;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+input[readonly], input[disabled] {
+  background: #eee;
+}
+button {
+  padding: 10px 25px;
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 5px;
+}
+button:hover {
+  background: #45a049;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+table, th, td {
+  border: 1px solid #ccc;
+}
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+th {
+  background: #f0f0f0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Travel Management SPA</h2>
+
+  <div class="nav-tabs">
+    <div class="tab active" data-target="applyScreen">Apply</div>
+    <div class="tab" data-target="statusScreen">Status</div>
+    <div class="tab" data-target="postScreen">Post-Travel Settlement</div>
+  </div>
+
+  <!-- Apply Screen -->
+  <div id="applyScreen" class="screen active">
+
+  <div class="container">
+  <h2>Travel Request Form</h2>
+
+  <!-- Employee Info -->
+  <section>
+    <h3>Employee Information</h3>
+    <label>Employee ID</label><input type="text" placeholder="Auto" readonly>
+    <label>Employee Name</label><input type="text" placeholder="Auto" readonly>
+    <label>Department</label><input type="text" placeholder="Auto" readonly>
+  </section>
+
+  <!-- Travel Details -->
+  <section>
+    <h3>Travel Details</h3>
+    <label>Travel Type</label>
+    <select id="travelType">
+      <option>Select Travel Type</option>
+      <option>Local Travel</option>
+      <option>Upcountry Travel</option>
+      <option>Transit Market Travel</option>
+      <option>International Travel</option>
+      <option>Emergency Travel</option>
+      <option>Training / Conference Travel</option>
+      <option>Project-Based Travel</option>
+      <option>Client-Sponsored Travel</option>
+      <option>Transit / Layover Travel</option>
+    </select>
+    <label>Purpose of Travel</label>
+    <textarea placeholder="Enter purpose of travel"></textarea>
+  </section>
+
+  <!-- Travel Duration -->
+  <section>
+    <h3>Travel Duration</h3>
+    <label>From Date</label><input type="date" id="fromDate">
+    <label>To Date</label><input type="date" id="toDate">
+    <label>Total Days</label><input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
+    <label>Weekend Included</label>
+    <select>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+    <div id="itinerary"></div>
+  </section>
+
+  <!-- Estimated Expenses -->
+  <section id="expensesSection" class="hidden">
+    <h3>Estimated Expenses</h3>
+    <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
+    <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
+    <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
+    <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
+    <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
+    <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
+  </section>
+
+  <!-- Advance -->
+  <section id="advanceSection" class="hidden">
+    <h3>Advance Request</h3>
+    <label>Advance Required</label>
+    <select id="advanceRequired">
+      <option>No</option>
+      <option>Yes</option>
+    </select>
+
+    <div id="advanceFields" class="hidden">
+      <label>Advance Amount Requested</label><input type="number" id="advanceAmount" placeholder="%">
+      <label>Existing Advances(Auto)</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
+      <label>Overdue Settlements(Auto)</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
+      <label>Eligibility Status</label><input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
+    </div>
+  </section>
+
+  <button id="submitBtn" disabled>Submit Request</button>
+</div>
+
+    <section>
+      <label>From Date</label>
+      <input type="date" id="fromDate">
+      <label>To Date</label>
+      <input type="date" id="toDate">
+      <label>Total Days</label>
+      <input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
+      <label>Weekend Included</label>
+      <select id="weekendInclude">
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+    </section>
+
+    <button onclick="submitRequest()">Submit Request</button>
+  </div>
+
+  <!-- Status Screen -->
+  <div id="statusScreen" class="screen">
+    <h3>All Travel Requests</h3>
+    <table id="statusTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Travel Type</th>
+          <th>Purpose</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Total Days</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic rows -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Post-Travel Settlement -->
+  <div id="postScreen" class="screen">
+    <section>
+      <h3>Post-Travel Settlement</h3>
+      <label>Select Travel ID</label>
+      <select id="settleSelect">
+        <option>Select ID</option>
+      </select>
+      <label>Total Actual Expenses</label>
+      <input type="text" id="actualExpenses" placeholder="Rs0.00">
+      <label>Net Payable / Receivable</label>
+      <input type="text" id="netAmount" placeholder="Rs0.00" readonly>
+      <label>Positive = Company Pays Employee</label>
+      <label>Negative = Employee Repays Company</label>
+      <button onclick="calculateNet()">Calculate Net</button>
+    </section>
+  </div>
+
+</div>
+
+<script>
+// Tab Navigation
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.getAttribute('data-target');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// Auto-calc Total Days
+const fromDate = document.getElementById('fromDate');
+const toDate = document.getElementById('toDate');
+const totalDays = document.getElementById('totalDays');
+
+function calculateDays() {
+  if(fromDate.value && toDate.value){
+    const diff = (new Date(toDate.value) - new Date(fromDate.value))/(1000*60*60*24)+1;
+    totalDays.value = diff>0 ? diff : 0;
+  }
+}
+fromDate.addEventListener('change', calculateDays);
+toDate.addEventListener('change', calculateDays);
+
+// Requests Array
+let requests = [];
+let requestId = 1;
+
+// Submit Request
+function submitRequest() {
+  const travelType = document.getElementById('travelType').value;
+  const purpose = document.getElementById('purpose').value;
+  const from = fromDate.value;
+  const to = toDate.value;
+  const days = totalDays.value;
+
+  if(!travelType || !purpose || !from || !to){
+    alert("Please fill all fields");
+    return;
+  }
+
+  const newReq = {
+    id: requestId++,
+    travelType,
+    purpose,
+    from,
+    to,
+    days,
+    status: "Pending"
+  };
+  requests.push(newReq);
+  alert("Travel Request Submitted!");
+  updateStatusTable();
+  updateSettlementDropdown();
+}
+
+// Update Status Table
+function updateStatusTable(){
+  const tbody = document.querySelector("#statusTable tbody");
+  tbody.innerHTML = "";
+  requests.forEach(r=>{
+    const row = `<tr>
+      <td>${r.id}</td>
+      <td>${r.travelType}</td>
+      <td>${r.purpose}</td>
+      <td>${r.from}</td>
+      <td>${r.to}</td>
+      <td>${r.days}</td>
+      <td>${r.status}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
+}
+
+// Update Settlement Dropdown
+function updateSettlementDropdown(){
+  const sel = document.getElementById("settleSelect");
+  sel.innerHTML = "<option>Select ID</option>";
+  requests.forEach(r=>{
+    if(r.status === "Approved") sel.innerHTML += `<option value="${r.id}">${r.id} - ${r.travelType}</option>`;
+  });
+}
+
+// Post-Travel Settlement Calculation
+function calculateNet(){
+  const sel = document.getElementById("settleSelect");
+  const selectedId = sel.value;
+  const actual = parseFloat(document.getElementById("actualExpenses").value);
+  if(!selectedId || isNaN(actual)){
+    alert("Select Travel ID and enter actual expenses");
+    return;
+  }
+  // For simplicity, let's assume advance = 0
+  const net = actual - 0;
+  document.getElementById("netAmount").value = net;
+}
+
+</script>
+</body>
+</html>
