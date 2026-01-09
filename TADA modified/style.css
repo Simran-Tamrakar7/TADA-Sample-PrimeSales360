@@ -1,0 +1,47 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 16px;
+}
+
+.top-bar {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.tabs a {
+  margin-right: 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 6px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px;
+}
+
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  font-size: 24px;
+}
+
+.hidden {
+  display: none;
+}

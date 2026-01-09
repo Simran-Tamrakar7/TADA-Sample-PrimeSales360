@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Travel Settlement & Expense Report</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+.container { width: 90%; max-width: 900px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+h2, h3 { color: #333; }
+section { margin-bottom: 25px; }
+label { display: block; margin: 8px 0 3px; font-weight: bold; }
+input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+input[readonly], input[disabled] { background: #eee; }
+button { padding: 10px 25px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+button:hover { background: #45a049; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Post-Travel Settlement & Expense Report</h2>
+
+  <!-- Employee Info -->
+  <section>
+    <h3>Employee Information</h3>
+    <label>Employee ID</label><input type="text" placeholder="Auto" readonly>
+    <label>Employee Name</label><input type="text" placeholder="Auto" readonly>
+    <label>Department</label><input type="text" placeholder="Auto" readonly>
+  </section>
+
+  <!-- Trip Reference -->
+  <section>
+    <h3>Trip Reference</h3>
+    <label>Travel Type</label><input type="text" placeholder="Auto-Link" readonly id="travelType">
+    <label>Purpose of Travel</label><input type="text" placeholder="Auto (from request)" readonly id="purpose">
+    <label>Travel Dates</label><input type="text" placeholder="Auto (From [Date] to [Date])" readonly id="travelDates">
+  </section>
+
+  <!-- Actual Incurred Expenses -->
+  <section>
+    <h3>Actual Incurred Expenses</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Expense Type</th>
+          <th>Planned (A)</th>
+          <th>Actual (B)</th>
+          <th>Variance (B-A)</th>
+          <th>Receipt Upload</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Transport</td>
+          <td><input type="number" id="planTransport" readonly></td>
+          <td><input type="number" id="actualTransport"></td>
+          <td><input type="number" id="varTransport" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>TADA Details</td>
+          <td><input type="number" id="planTADA" readonly></td>
+          <td><input type="number" id="actualTADA"></td>
+          <td><input type="number" id="varTADA" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>Vehicle Rental/Fuel</td>
+          <td><input type="number" id="planVehicle" readonly></td>
+          <td><input type="number" id="actualVehicle"></td>
+          <td><input type="number" id="varVehicle" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>Guest & Entertainment</td>
+          <td><input type="number" id="planGuest" readonly></td>
+          <td><input type="number" id="actualGuest"></td>
+          <td><input type="number" id="varGuest" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>Team Meeting Expenses</td>
+          <td><input type="number" id="planTeam" readonly></td>
+          <td><input type="number" id="actualTeam"></td>
+          <td><input type="number" id="varTeam" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>Other Expenses</td>
+          <td><input type="number" id="planOther" readonly></td>
+          <td><input type="number" id="actualOther"></td>
+          <td><input type="number" id="varOther" readonly></td>
+          <td><input type="file" multiple></td>
+        </tr>
+        <tr>
+          <td>Total</td>
+          <td><input type="number" id="totalPlanned" readonly></td>
+          <td><input type="number" id="totalActual" readonly></td>
+          <td><input type="number" id="totalVariance" readonly></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Trip Outcome -->
+  <section>
+    <h3>Trip Outcome</h3>
+    <label>Objectives Achieved</label>
+    <textarea placeholder="What was accomplished?"></textarea>
+    <label>Key Meetings / Contacts</label>
+    <textarea placeholder="For record and follow-up"></textarea>
+  </section>
+
+  <!-- Settlement Calculation -->
+  <section>
+    <h3>Settlement Calculation (Only if advance taken in apply)</h3>
+    <label>Total Advance Received</label><input type="number" id="totalAdvance" readonly>
+    <label>Total Actual Expense (from above) </label><input type="number" id="totalExpense" readonly>
+    <label>Net Payable / (Receivable)</label><input type="number" id="netPayable" readonly>
+  </section>
+
+  <button id="submitBtn">Submit Settlement</button>
+</div>
+
+<script>
+// Load planned expenses & advance from Apply page
+window.addEventListener('load', ()=>{
+  const planned = JSON.parse(localStorage.getItem('plannedExpenses') || '{}');
+  const advanceTaken = parseFloat(localStorage.getItem('advanceTaken') || 0);
+  const travelInfo = JSON.parse(localStorage.getItem('travelInfo') || '{}');
+
+  // Fill Trip Info
+  document.getElementById('travelType').value = travelInfo.travelType || '';
+  document.getElementById('purpose').value = travelInfo.purpose || '';
+  document.getElementById('travelDates').value = travelInfo.fromDate && travelInfo.toDate ? `${travelInfo.fromDate} to ${travelInfo.toDate}` : '';
+
+  // Fill Planned (A)
+  document.getElementById('planTransport').value = planned.transport || 0;
+  document.getElementById('planTADA').value = planned.tada || 0;
+  document.getElementById('planVehicle').value = planned.vehicle || 0;
+  document.getElementById('planGuest').value = planned.guest || 0;
+  document.getElementById('planTeam').value = planned.team || 0;
+  document.getElementById('planOther').value = planned.other || 0;
+
+  // Only fill advance if taken
+  document.getElementById('totalAdvance').value = advanceTaken || 0;
+
+  // Initialize Actual = 0
+  ['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(type=>{
+    document.getElementById('actual'+type).value = 0;
+    document.getElementById('var'+type).value = 0;
+  });
+
+  calculateTotals();
+});
+
+// Calculate variance and Net Payable
+totalExpense
+
+function calculateTotals(){
+  const types = ['Transport','TADA','Vehicle','Guest','Team','Other'];
+  let totalPlanned = 0, totalActual = 0;
+  types.forEach(type=>{
+    const plan = parseFloat(document.getElementById('plan'+type).value)||0;
+    const actual = parseFloat(document.getElementById('actual'+type).value)||0;
+    document.getElementById('var'+type).value = actual - plan;
+    totalPlanned += plan;
+    totalActual += actual;
+  });
+
+  document.getElementById('totalPlanned').value = totalPlanned;
+  document.getElementById('totalActual').value = totalActual;
+  document.getElementById('totalVariance').value = totalActual - totalPlanned;
+
+  const advance = parseFloat(document.getElementById('totalAdvance').value)||0;
+  document.getElementById('netPayable').value = totalActual - advance;
+  document.getElementById('totalExpense').value = totalActual;
+}
+
+// Recalculate on actual expenses input
+['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(type=>{
+  document.getElementById('actual'+type).addEventListener('input', calculateTotals);
+});
+</script>
+</body>
+</html>

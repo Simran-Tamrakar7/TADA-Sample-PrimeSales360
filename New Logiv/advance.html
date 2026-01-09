@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advance Requests</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>Advance Requests</h2>
+
+  <section>
+    <h3>Request Advance</h3>
+    <label>Travel Reference</label><input type="text" id="travelRef" placeholder="Auto from travel request">
+    <label>Amount Requested</label><input type="number" id="amountReq" placeholder="Rs">
+    <label>Existing Advances</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
+    <label>Overdue Settlements</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
+    <label>Eligibility</label><input type="text" id="eligibility" readonly>
+  </section>
+
+  <button id="submitBtn">Submit Advance Request</button>
+</div>
+
+<script>
+const amountReq = document.getElementById('amountReq');
+const existingAdv = document.getElementById('existingAdv');
+const overdue = document.getElementById('overdue');
+const eligibility = document.getElementById('eligibility');
+const submitBtn = document.getElementById('submitBtn');
+
+function checkEligibility(){
+  let ex = parseFloat(existingAdv.value)||0;
+  let od = parseFloat(overdue.value)||0;
+  if(ex===0 && od===0){
+    eligibility.value = "Eligible";
+    submitBtn.disabled = false;
+  }else{
+    eligibility.value = "Not Eligible";
+    submitBtn.disabled = true;
+  }
+}
+
+[amountReq, existingAdv, overdue].forEach(el=>el.addEventListener('input', checkEligibility));
+checkEligibility();
+
+submitBtn.addEventListener('click', ()=>{
+  alert('Advance Request Submitted!');
+});
+</script>
+</body>
+</html>

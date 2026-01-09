@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Expenses</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>Add Travel Expense</h2>
+
+  <!-- Expense Form -->
+  <section>
+    <h3>Expense Details</h3>
+    <label>Travel Reference</label><input type="text" id="travelRef" placeholder="Auto-link from travel request">
+    <label>Expense Type</label>
+    <select id="expenseType">
+      <option>Transport</option>
+      <option>TADA</option>
+      <option>Vehicle Rental/Fuel</option>
+      <option>Guest & Entertainment</option>
+      <option>Team Meeting</option>
+      <option>Other</option>
+    </select>
+    <label>Amount</label><input type="number" id="expenseAmount" placeholder="Enter amount">
+    <label>Upload Receipt</label><input type="file" id="receiptFile" multiple>
+  </section>
+
+  <button id="addExpenseBtn">Add Expense</button>
+
+  <section>
+    <h3>Expenses Added</h3>
+    <table id="expenseTable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Receipt</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+const addBtn = document.getElementById('addExpenseBtn');
+const expenseTableBody = document.querySelector('#expenseTable tbody');
+
+// Load existing expenses from localStorage
+let expenses = JSON.parse(localStorage.getItem('addedExpenses') || '[]');
+function renderTable(){
+  expenseTableBody.innerHTML = '';
+  expenses.forEach((exp, i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${exp.type}</td>
+                    <td>${exp.amount}</td>
+                    <td>${exp.receiptName || '-'}</td>
+                    <td><button data-index="${i}" class="deleteBtn">Delete</button></td>`;
+    expenseTableBody.appendChild(tr);
+  });
+
+  document.querySelectorAll('.deleteBtn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const idx = e.target.dataset.index;
+      expenses.splice(idx,1);
+      localStorage.setItem('addedExpenses', JSON.stringify(expenses));
+      renderTable();
+    });
+  });
+}
+renderTable();
+
+addBtn.addEventListener('click', ()=>{
+  const travelRef = document.getElementById('travelRef').value;
+  const type = document.getElementById('expenseType').value;
+  const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+  const receipt = document.getElementById('receiptFile').files[0];
+  expenses.push({travelRef,type,amount,receiptName: receipt?receipt.name:'-'});
+  localStorage.setItem('addedExpenses', JSON.stringify(expenses));
+  renderTable();
+  document.getElementById('expenseAmount').value='';
+});
+</script>
+</body>
+</html>
