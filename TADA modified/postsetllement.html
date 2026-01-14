@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Travel Settlement & Expense Report</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>Post-Travel Settlement & Expense Report</h2>
+
+  <!-- Trip Reference -->
+  <section>
+    <h3>Trip Reference</h3>
+    <label>Travel Reference</label>
+    <input type="text" id="travelRef" readonly>
+    <label>Travel Type</label>
+    <input type="text" id="travelType" readonly>
+    <label>Purpose of Travel</label>
+    <input type="text" id="purpose" readonly>
+    <label>Travel Dates</label>
+    <input type="text" id="travelDates" readonly>
+  </section>
+
+  <!-- Actual Incurred Expenses -->
+  <section>
+    <h3>Actual Expenses</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Expense Type</th>
+          <th>Planned (A)</th>
+          <th>Actual (B)</th>
+          <th>Variance (B-A)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Transport</td><td><input id="planTransport" readonly></td><td><input id="actualTransport" type="number"></td><td><input id="varTransport" readonly></td></tr>
+        <tr><td>TADA</td><td><input id="planTADA" readonly></td><td><input id="actualTADA" type="number"></td><td><input id="varTADA" readonly></td></tr>
+        <tr><td>Vehicle</td><td><input id="planVehicle" readonly></td><td><input id="actualVehicle" type="number"></td><td><input id="varVehicle" readonly></td></tr>
+        <tr><td>Guest & Entertainment</td><td><input id="planGuest" readonly></td><td><input id="actualGuest" type="number"></td><td><input id="varGuest" readonly></td></tr>
+        <tr><td>Team Meeting</td><td><input id="planTeam" readonly></td><td><input id="actualTeam" type="number"></td><td><input id="varTeam" readonly></td></tr>
+        <tr><td>Other</td><td><input id="planOther" readonly></td><td><input id="actualOther" type="number"></td><td><input id="varOther" readonly></td></tr>
+        <tr><td>Total</td><td><input id="totalPlanned" readonly></td><td><input id="totalActual" readonly></td><td><input id="totalVariance" readonly></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Settlement Calculation -->
+  <section>
+    <h3>Settlement Calculation</h3>
+    <label>Total Advance Received</label>
+    <input type="number" id="totalAdvance" readonly>
+    <label>Total Expense</label>
+    <input type="number" id="totalExpense" readonly>
+    <label>Net Payable / Receivable</label>
+    <input type="number" id="netPayable" readonly>
+  </section>
+
+  <button id="submitBtn">Submit Settlement</button>
+</div>
+
+<script>
+// Load last travel request for settlement
+window.addEventListener('load', ()=>{
+  const travelRequests = JSON.parse(localStorage.getItem('travelRequests')||'[]');
+  const lastTravel = travelRequests.filter(t=>t.status==='Approved').pop();
+
+  if(!lastTravel){
+    alert('No approved travel request found for settlement!');
+    return;
+  }
+
+  document.getElementById('travelRef').value = lastTravel.travelRef;
+  document.getElementById('travelType').value = lastTravel.travelType;
+  document.getElementById('purpose').value = lastTravel.purpose;
+  document.getElementById('travelDates').value = `${lastTravel.fromDate} to ${lastTravel.toDate}`;
+  document.getElementById('totalAdvance').value = lastTravel.advanceTaken || 0;
+
+  // Fill Planned
+  ['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(t=>{
+    document.getElementById('plan'+t).value = lastTravel.plannedExpenses[t.toLowerCase()] || 0;
+    document.getElementById('actual'+t).value = 0;
+    document.getElementById('var'+t).value = 0;
+  });
+
+  calculateTotals();
+});
+
+// Calculate variance & net
+function calculateTotals(){
+  const types = ['Transport','TADA','Vehicle','Guest','Team','Other'];
+  let totalPlanned=0, totalActual=0;
+  types.forEach(t=>{
+    const plan = parseFloat(document.getElementById('plan'+t).value)||0;
+    const actual = parseFloat(document.getElementById('actual'+t).value)||0;
+    document.getElementById('var'+t).value = actual - plan;
+    totalPlanned+=plan;
+    totalActual+=actual;
+  });
+  document.getElementById('totalPlanned').value = totalPlanned;
+  document.getElementById('totalActual').value = totalActual;
+  document.getElementById('totalVariance').value = totalActual - totalPlanned;
+  document.getElementById('totalExpense').value = totalActual;
+
+  const advance = parseFloat(document.getElementById('totalAdvance').value)||0;
+  document.getElementById('netPayable').value = totalActual - advance;
+}
+
+// Recalculate on actual expense change
+['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(t=>{
+  document.getElementById('actual'+t).addEventListener('input', calculateTotals);
+});
+
+// Submit settlement
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  const travelRef = document.getElementById('travelRef').value;
+  const settlements = JSON.parse(localStorage.getItem('postSettlements')||'[]');
+
+  const actualExpenses = {};
+  ['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(t=>{
+    actualExpenses[t.toLowerCase()] = parseFloat(document.getElementById('actual'+t).value)||0;
+  });
+
+  settlements.push({
+    travelRef,
+    actualExpenses,
+    totalAdvance: parseFloat(document.getElementById('totalAdvance').value)||0,
+    totalExpense: parseFloat(document.getElementById('totalExpense').value)||0,
+    netPayable: parseFloat(document.getElementById('netPayable').value)||0,
+    status:'Pending'
+  });
+  localStorage.setItem('postSettlements', JSON.stringify(settlements));
+  alert('Settlement submitted successfully!');
+  location.reload();
+});
+</script>
+</body>
+</html>

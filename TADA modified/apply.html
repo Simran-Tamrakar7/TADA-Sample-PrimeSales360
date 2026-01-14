@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Request Form</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>Travel Request Form</h2>
+
+  <!-- Employee Info -->
+  <section>
+    <h3>Employee Information</h3>
+    <label>Employee ID</label><input type="text" placeholder="Auto" readonly>
+    <label>Employee Name</label><input type="text" placeholder="Auto" readonly>
+    <label>Department</label><input type="text" placeholder="Auto" readonly>
+  </section>
+
+  <!-- Travel Details -->
+  <section>
+    <h3>Travel Details</h3>
+    <label>Travel Type</label>
+    <select id="travelType">
+      <option>Select Travel Type</option>
+      <option>Local Travel</option>
+      <option>Upcountry Travel</option>
+      <option>Transit Market Travel</option>
+      <option>International Travel</option>
+      <option>Emergency Travel</option>
+      <option>Training / Conference Travel</option>
+      <option>Project-Based Travel</option>
+      <option>Client-Sponsored Travel</option>
+      <option>Transit / Layover Travel</option>
+    </select>
+    <label>Purpose of Travel</label>
+    <textarea placeholder="Enter purpose of travel" id="purpose"></textarea>
+  </section>
+
+  <!-- Travel Duration -->
+  <section>
+    <h3>Travel Duration</h3>
+    <label>From Date</label><input type="date" id="fromDate">
+    <label>To Date</label><input type="date" id="toDate">
+    <label>Total Days</label><input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
+  </section>
+
+  <!-- Estimated Expenses -->
+  <section id="expensesSection" class="hidden">
+    <h3>Estimated Expenses</h3>
+    <label>Transport</label><input type="number" placeholder="Rs0.00" id="transport">
+    <label>TADA</label><input type="number" placeholder="Auto Calculated" readonly id="tada">
+    <label>Vehicle Rental</label><input type="number" placeholder="Rs0.00" id="vehicle">
+    <label>Guest & Entertainment</label><input type="number" placeholder="Rs0.00" id="guest">
+    <label>Team Meeting</label><input type="number" placeholder="Rs0.00" id="team">
+    <label>Other Expenses</label><input type="number" placeholder="Rs0.00" id="other">
+  </section>
+
+  <button id="submitBtn">Submit Travel Request</button>
+</div>
+
+<script>
+const fromDate = document.getElementById('fromDate');
+const toDate = document.getElementById('toDate');
+const totalDays = document.getElementById('totalDays');
+const travelTypeSelect = document.getElementById('travelType');
+const expensesSection = document.getElementById('expensesSection');
+const tadaInput = document.getElementById('tada');
+
+function generateTotalDays(){
+  if(fromDate.value && toDate.value){
+    const diff = (new Date(toDate.value) - new Date(fromDate.value))/(1000*60*60*24) +1;
+    totalDays.value = diff >0? diff:0;
+    calculateTADA();
+  }
+}
+
+function calculateTADA(){
+  const days = parseInt(totalDays.value) || 0;
+  tadaInput.value = days*1000; // example per day
+}
+
+// Show expenses only for certain travel types
+travelTypeSelect.addEventListener('change', ()=> {
+  if(['Upcountry Travel','Transit Market Travel','International Travel','Project-Based Travel'].includes(travelTypeSelect.value)){
+    expensesSection.classList.remove('hidden');
+  }else{
+    expensesSection.classList.add('hidden');
+  }
+});
+
+fromDate.addEventListener('change', generateTotalDays);
+toDate.addEventListener('change', generateTotalDays);
+
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  const travelRef = 'TR-'+new Date().getTime();
+  const plannedExpenses = {
+    transport: parseFloat(document.getElementById('transport').value)||0,
+    tada: parseFloat(document.getElementById('tada').value)||0,
+    vehicle: parseFloat(document.getElementById('vehicle').value)||0,
+    guest: parseFloat(document.getElementById('guest').value)||0,
+    team: parseFloat(document.getElementById('team').value)||0,
+    other: parseFloat(document.getElementById('other').value)||0
+  };
+  const travelInfo = {
+    travelRef,
+    travelType: travelTypeSelect.value,
+    purpose: document.getElementById('purpose').value,
+    fromDate: fromDate.value,
+    toDate: toDate.value,
+    totalDays: parseInt(totalDays.value)||0,
+    plannedExpenses,
+    advanceTaken:0,
+    status:'Pending'
+  };
+
+  const allRequests = JSON.parse(localStorage.getItem('travelRequests')||'[]');
+  allRequests.push(travelInfo);
+  localStorage.setItem('travelRequests', JSON.stringify(allRequests));
+  alert(`Travel Request Submitted! Travel Ref: ${travelRef}`);
+  location.reload();
+});
+</script>
+</body>
+</html>
