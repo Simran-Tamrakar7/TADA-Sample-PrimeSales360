@@ -40,25 +40,17 @@ const tabContentMap = {
   expenses: `<iframe src="expenses.html" style="width:100%;height:80vh;border:none;"></iframe>`,
   settle: `<iframe src="postsettlement.html" style="width:100%;height:80vh;border:none;"></iframe>`,
   advance: `<iframe src="advance.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  more: `<h2>More</h2>
-         <ul>
-           <li>Monthly TADA Report</li>
-           <li>Monthly Expense Report</li>
-           <li>Travel Policy</li>
-           <li>Expense Policy</li>
-           <li>Help & Support</li>
-           <li>Settings</li>
-         </ul>`
+  more: `<iframe src="more.html" style="width:100%;height:80vh;border:none;"></iframe>`
 };
 
-const fabActions = {
-  dashboard: '+',
-  travel: '+',
-  expenses: '+',
-  settle: '+',
-  advance: '+',
-  more: ''
-};
+// const fabActions = {
+//   dashboard: '+',
+//   travel: '+',
+//   expenses: '+',
+//   settle: '+',
+//   advance: '+',
+//   more: ''
+// };
 
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabContent = document.getElementById('tabContent');
