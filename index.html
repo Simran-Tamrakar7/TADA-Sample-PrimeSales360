@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Travel & Reimbursement Portal</title>
-  <link rel="stylesheet" href="style.css">
   <style>
     .tab-bar {
       display: flex;
@@ -48,26 +47,7 @@
       border-bottom: 1px solid #ddd;
     }
 
-    #fab {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      font-size: 32px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    #fab.hidden {
-      display: none;
-    }
-
-    .tab-content {
+    #tabContent {
       padding: 20px;
     }
   </style>
@@ -88,79 +68,59 @@
     <button class="tab-btn" data-tab="more">More</button>
   </div>
 
-  <div id="tabContent" class="tab-content"></div>
-
-  <button id="fab">+</button>
+  <div id="tabContent"></div>
 
   <script>
-    const tabContentMap = {
-      dashboard: `<iframe src="dashboard.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      travel: `<iframe src="travel-apply.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      expenses: `<iframe src="expenses.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      advance: `<iframe src="advance.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      settle: `<iframe src="postsettlement.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      approval: `<iframe src="approval.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-      more: `<iframe src="more.html" style="width:100%;height:80vh;border:none;"></iframe>`
-    };
-
-    // const fabActions = {
-    //   dashboard: '+',
-    //   travel: '+',
-    //   expenses: '+',
-    //   settle: '+',
-    //   advance: '+',
-    //   more: ''
-    // };
-
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContent = document.getElementById('tabContent');
     const currentScreen = document.getElementById('currentScreen');
-    const fab = document.getElementById('fab');
 
-    function loadTab(tab) {
-      tabContent.innerHTML = tabContentMap[tab] || '';
+    // Optional: hide FAB for certain tabs (not implemented here)
+    const fabActions = { dashboard: '+', travel: '+', expenses: '+', advance: '+', settle: '+', approval: '', more: '' };
+
+    function loadTab(tab, subview = '') {
+      // determine iframe source
+      let iframeSrc = '';
+      switch (tab) {
+        case 'dashboard': iframeSrc = 'dashboard.html'; break;
+        case 'travel': iframeSrc = 'travel-apply.html'; break;
+        case 'expenses': iframeSrc = 'expenses.html'; break;
+        case 'advance': iframeSrc = 'advance.html'; break;
+        case 'settle': iframeSrc = 'postsettlement.html'; break;
+        case 'approval': iframeSrc = 'approval.html'; break;
+        case 'more': iframeSrc = 'more.html'; break;
+      }
+
+      tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}" style="width:100%;height:80vh;border:none;"></iframe>`;
       currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
-      fab.classList.toggle('hidden', fabActions[tab] === '');
+
+      // highlight active tab
+      tabButtons.forEach(b => b.classList.remove('active'));
+      document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
+
+      // wait for iframe load to trigger subview
+      const iframe = document.getElementById('tabIframe');
+      iframe.onload = () => {
+        if (subview && iframe.contentWindow) {
+          if (subview === 'apply' && typeof iframe.contentWindow.openForm === 'function') {
+            iframe.contentWindow.openForm();
+          }
+          if (subview === 'addExpense' && typeof iframe.contentWindow.openForm === 'function') {
+            iframe.contentWindow.openForm();
+          }
+        }
+      };
     }
 
     tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadTab(btn.dataset.tab);
-      });
+      btn.addEventListener('click', () => loadTab(btn.dataset.tab));
     });
 
+    // default load dashboard
     loadTab('dashboard');
-    window.loadTab = function(tab, subview = '') {
-  let iframeSrc = '';
-  switch(tab) {
-    case 'dashboard': iframeSrc = 'dashboard.html'; break;
-    case 'travel': 
-      iframeSrc = 'travel-requests.html'; // travel list + form modal
-      break;
-    case 'expenses': iframeSrc = 'expenses.html'; break;
-    case 'advance': iframeSrc = 'advance.html'; break;
-    case 'settle': iframeSrc = 'postsettlement.html'; break;
-    case 'approval': iframeSrc = 'approval.html'; break;
-    case 'more': iframeSrc = 'more.html'; break;
-  }
 
-  tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}" style="width:100%;height:80vh;border:none;"></iframe>`;
-  currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
-
-  // After iframe loads, trigger subview actions
-  const iframe = document.getElementById('tabIframe');
-  iframe.onload = () => {
-    if(subview === 'apply' && iframe.contentWindow && typeof iframe.contentWindow.openForm === 'function'){
-      iframe.contentWindow.openForm(); // open travel apply modal
-    }
-  }
-};
-
-
+    window.loadTab = loadTab; // make it globally accessible
   </script>
-
 </body>
 
 </html>
