@@ -3,232 +3,315 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel Request Form</title>
+<title>Travel Requests</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-  margin: 0;
-  padding: 0;
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
+h2,h3 { color:#333; }
+label { display:block; margin:8px 0 3px; font-weight:bold; }
+input,select,textarea { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+input[readonly], select[disabled] { background:#eee; }
+button { padding:10px 20px; background:#4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+button:disabled { background:#aaa; cursor:not-allowed; }
+.card { background:#fff; padding:15px; margin:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.1); cursor:pointer; position:relative; }
+.fab { position:fixed; bottom:25px; right:25px; width:60px; height:60px; border-radius:50%; font-size:32px; background:#4CAF50; color:#fff; border:none; }
+.hidden { display:none; }
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); justify-content:center; align-items:center; }
+.modal-content { background:#fff; padding:20px; border-radius:10px; width:90%; max-width:650px; max-height:90%; overflow-y:auto; }
+.status-badge { padding:4px 8px; border-radius:6px; color:#fff; }
+.status-Pending { background:#ffc107; }
+.status-Approved { background:#4CAF50; }
+.status-Rejected { background:#f44336; }
+.filterMenu { display:none; position:absolute; right:20px; top:50px; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); padding:10px; }
+.settleBtn {
+  position:absolute;
+  top:50px;
+  bottom: 50px;
+  right:10px;
+  background:#2196F3;
+  color:#fff;
+  padding:20px 30px;
+  font-size:14px;
+  border-radius:5px;
+  cursor:pointer;
+  border:none;
+  box-shadow:0 2px 4px rgba(0,0,0,0.2);
+  transition:all 0.2s ease;
 }
-.container {
-  width: 90%;
-  max-width: 900px;
-  margin: 30px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+
+.settleBtn:hover {
+  background:#1976D2;
+  transform:translateY(-2px);
+  box-shadow:0 4px 8px rgba(0,0,0,0.3);
 }
-h2, h3 { color: #333; }
-section { margin-bottom: 25px; }
-label { display: block; margin: 8px 0 3px; font-weight: bold; }
-input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
-input[readonly], input[disabled] { background: #eee; }
-button { padding: 10px 25px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-button:hover { background: #45a049; }
-.itinerary-day { margin-bottom: 5px; }
-.hidden { display: none; }
+
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>Travel Request Form</h2>
 
-  <!-- Employee Info -->
-  <section>
-    <h3>Employee Information</h3>
-    <label>Employee ID</label><input type="text" placeholder="Auto" readonly>
-    <label>Employee Name</label><input type="text" placeholder="Auto" readonly>
-    <label>Department</label><input type="text" placeholder="Auto" readonly>
-  </section>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+  <h2>My Travel Requests</h2>
+  <button id="filterBtn">Filter ▼</button>
+</div>
 
-  <!-- Travel Details -->
-  <section>
-    <h3>Travel Details</h3>
-    <label>Travel Type</label>
-    <select id="travelType">
-      <option>Select Travel Type</option>
-      <option>Local Travel</option>
-      <option>Upcountry Travel</option>
-      <option>Transit Market Travel</option>
-      <option>International Travel</option>
-      <option>Emergency Travel</option>
-      <option>Training / Conference Travel</option>
-      <option>Project-Based Travel</option>
-      <option>Client-Sponsored Travel</option>
-      <option>Transit / Layover Travel</option>
-    </select>
-    <label>Purpose of Travel</label>
-    <textarea placeholder="Enter purpose of travel"></textarea>
-  </section>
+<div id="filterMenu" class="filterMenu">
+  <button class="filterOption" data-status="All">All</button>
+  <button class="filterOption" data-status="Pending">Pending</button>
+  <button class="filterOption" data-status="Approved">Approved</button>
+  <button class="filterOption" data-status="Rejected">Rejected</button>
+</div>
 
-  <!-- Travel Duration -->
-  <section>
-    <h3>Travel Duration</h3>
-    <label>From Date</label><input type="date" id="fromDate">
-    <label>To Date</label><input type="date" id="toDate">
-    <label>Total Days</label><input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
-    <label>Weekend Included</label>
-    <select>
-      <option>Yes</option>
-      <option>No</option>
-    </select>
-    <div id="itinerary"></div>
-  </section>
+<div id="travelList"></div>
+<button class="fab" id="addBtn">+</button>
 
-  <!-- Estimated Expenses -->
-  <section id="expensesSection" class="hidden">
-    <h3>Estimated Expenses</h3>
-    <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
-    <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
-    <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
-    <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
-    <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
-    <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
-  </section>
+<!-- MODAL -->
+<div id="formModal" class="modal">
+  <div class="modal-content">
+    <h3 id="formTitle">New Travel</h3>
 
-  <!-- Advance -->
-  <section id="advanceSection" class="hidden">
-    <h3>Advance Request</h3>
-    <label>Advance Required</label>
-    <select id="advanceRequired">
-      <option>No</option>
-      <option>Yes</option>
-    </select>
+    <section>
+      <h3>Employee Info</h3>
+      <label>Employee ID</label><input readonly placeholder="Auto">
+      <label>Employee Name</label><input readonly placeholder="Auto">
+      <label>Department</label><input readonly placeholder="Auto">
+    </section>
 
-    <div id="advanceFields" class="hidden">
-      <label>Advance Amount Requested</label><input type="number" id="advanceAmount" placeholder="%">
-      <label>Existing Advances(Auto)</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
-      <label>Overdue Settlements(Auto)</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
-      <label>Eligibility Status</label><input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
+    <section>
+      <h3>Travel Details</h3>
+      <label>Travel Type</label>
+      <select id="travelType">
+        <option>Select Travel Type</option>
+        <option>Local Travel</option>
+        <option>Upcountry Travel</option>
+        <option>Transit Market Travel</option>
+        <option>International Travel</option>
+        <option>Emergency Travel</option>
+        <option>Training / Conference Travel</option>
+        <option>Project-Based Travel</option>
+      </select>
+      <label>Purpose</label>
+      <textarea id="purpose"></textarea>
+    </section>
+
+    <section>
+      <h3>Travel Duration</h3>
+      <label>From Date</label><input type="date" id="fromDate">
+      <label>To Date</label><input type="date" id="toDate">
+      <label>Total Days</label><input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
+      <label>Weekend Included</label>
+      <select>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <div id="itinerary"></div>
+    </section>
+
+    <section id="expensesSection" class="hidden">
+      <h3>Estimated Expenses</h3>
+      <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
+      <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
+      <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
+      <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
+      <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
+      <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
+    </section>
+
+    <section id="advanceSection" class="hidden">
+      <h3>Advance</h3>
+      <label>Advance Required</label>
+      <select id="advanceRequired">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <div id="advanceFields" class="hidden">
+        <label>Advance Amount Requested</label><input type="number" id="advanceAmount" placeholder="%">
+        <label>Existing Advances(Auto)</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
+        <label>Overdue Settlements(Auto)</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
+        <label>Eligibility Status</label><input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
+      </div>
+    </section>
+
+    <div style="text-align:right;">
+      <button id="submitBtn" type="button">Submit</button>
+      <button id="closeBtn" style="background:#ccc;color:#000;">Cancel</button>
     </div>
-  </section>
-
-  <button id="submitBtn" disabled>Submit Request</button>
+  </div>
 </div>
 
 <script>
-// Auto-calc Total Days & generate itinerary
+let travelRequests = JSON.parse(localStorage.getItem('travelRequests')||'[]');
+let editingIndex = null;
+let currentFilter = 'All';
+
+const list = document.getElementById('travelList');
+const modal = document.getElementById('formModal');
+const submitBtn = document.getElementById('submitBtn');
+const addBtn = document.getElementById('addBtn');
+
+const travelType = document.getElementById('travelType');
+const purpose = document.getElementById('purpose');
 const fromDate = document.getElementById('fromDate');
 const toDate = document.getElementById('toDate');
 const totalDays = document.getElementById('totalDays');
-const itineraryDiv = document.getElementById('itinerary');
 
-function generateItinerary() {
-  itineraryDiv.innerHTML = '';
-  if(fromDate.value && toDate.value){
-    const from = new Date(fromDate.value);
-    const to = new Date(toDate.value);
-    let diff = Math.floor((to - from)/(1000*60*60*24)) + 1;
-    diff = diff>0 ? diff : 0;
-    totalDays.value = diff;
-
-    for(let i=1;i<=diff;i++){
-      const label = document.createElement('label');
-      label.textContent = `Day ${i} Itinerary`;
-      label.className = 'itinerary-day';
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = 'Enter details';
-      itineraryDiv.appendChild(label);
-      itineraryDiv.appendChild(input);
-    }
-  }
-}
-fromDate.addEventListener('change', generateItinerary);
-toDate.addEventListener('change', generateItinerary);
-
-// Show Estimated Expenses only for certain travel types
-const travelTypeSelect = document.getElementById('travelType');
 const expensesSection = document.getElementById('expensesSection');
 const advanceSection = document.getElementById('advanceSection');
-travelTypeSelect.addEventListener('change', () => {
-  const val = travelTypeSelect.value;
-  if(['Upcountry Travel','Transit Market Travel','International Travel','Project-Based Travel'].includes(val)){
-    expensesSection.classList.remove('hidden');
-    advanceSection.classList.remove('hidden');
-    calculateTADA();
-  } else {
-    expensesSection.classList.add('hidden');
-    advanceSection.classList.add('hidden');
-  }
-});
-
-// Calculate TADA automatically based on total days
-const tadaInput = document.getElementById('tada');
-function calculateTADA(){
-  const days = parseInt(totalDays.value) || 0;
-  const rate = 1000; // example per day
-  tadaInput.value = days*rate;
-}
-fromDate.addEventListener('change', calculateTADA);
-toDate.addEventListener('change', calculateTADA);
-
-// Advance Request Show/Hide & Eligibility
-const advanceSelect = document.getElementById('advanceRequired');
+const advanceRequired = document.getElementById('advanceRequired');
 const advanceFields = document.getElementById('advanceFields');
-const existingAdv = document.getElementById('existingAdv');
-const overdue = document.getElementById('overdue');
+
+const transport = document.getElementById('transport');
+const tada = document.getElementById('tada');
+const vehicle = document.getElementById('vehicle');
+const guest = document.getElementById('guest');
+const team = document.getElementById('team');
+const other = document.getElementById('other');
+const advanceAmount = document.getElementById('advanceAmount');
 const eligibility = document.getElementById('eligibility');
-const submitBtn = document.getElementById('submitBtn');
 
-advanceSelect.addEventListener('change', ()=> {
-  advanceFields.classList.toggle('hidden', advanceSelect.value !== 'Yes');
-  checkEligibility();
-});
-existingAdv.addEventListener('input', checkEligibility);
-overdue.addEventListener('input', checkEligibility);
-document.getElementById('advanceAmount').addEventListener('input', checkEligibility);
-
-function checkEligibility(){
-  let ex = parseFloat(existingAdv.value) || 0;
-  let od = parseFloat(overdue.value) || 0;
-  if(ex === 0 && od === 0){
-    eligibility.value = "Eligible";
-    submitBtn.disabled = false;
-  } else {
-    eligibility.value = "Not Eligible";
-    submitBtn.disabled = true;
+// Calculate days & TADA
+function calculateDays(){
+  if(fromDate.value && toDate.value){
+    const d = (new Date(toDate.value)-new Date(fromDate.value))/(86400000)+1;
+    totalDays.value = d>0?d:0;
+    tada.value = totalDays.value*1000;
   }
 }
+fromDate.onchange = toDate.onchange = calculateDays;
 
-// Initialize on load
-window.addEventListener('load', ()=>{
-  advanceFields.classList.toggle('hidden', advanceSelect.value !== 'Yes');
-  checkEligibility();
-});
-submitBtn.addEventListener('click', () => {
-  // Gather planned expenses
-  const plannedExpenses = {
-    transport: parseFloat(document.getElementById('transport').value) || 0,
-    tada: parseFloat(document.getElementById('tada').value) || 0,
-    vehicle: parseFloat(document.getElementById('vehicle').value) || 0,
-    guest: parseFloat(document.getElementById('guest').value) || 0,
-    team: parseFloat(document.getElementById('team').value) || 0,
-    other: parseFloat(document.getElementById('other').value) || 0
-  };
+// Show expenses/advance for certain travel types
+travelType.onchange = ()=>{
+  const show = ['Upcountry Travel','International Travel','Project-Based Travel'].includes(travelType.value);
+  expensesSection.classList.toggle('hidden',!show);
+  advanceSection.classList.toggle('hidden',!show);
+};
 
-  // Gather advance info
-  const advanceTaken = advanceSelect.value === 'Yes' ? parseFloat(document.getElementById('advanceAmount').value) || 0 : 0;
+// Advance fields
+advanceRequired.onchange = ()=>advanceFields.classList.toggle('hidden',advanceRequired.value!=='Yes');
+eligibility.value = advanceRequired.value==='Yes'?'Eligible':'';
 
-  // Gather travel info
-  const travelInfo = {
-    travelType: travelTypeSelect.value,
-    purpose: document.querySelector('textarea').value,
+// Open form
+function openForm(i=null){
+  editingIndex = i;
+  modal.style.display='flex';
+  let readOnly = false;
+
+  if(i!==null){
+    const t = travelRequests[i];
+    travelType.value=t.travelType;
+    purpose.value=t.purpose;
+    fromDate.value=t.fromDate;
+    toDate.value=t.toDate;
+    totalDays.value=t.totalDays;
+    const expenses = t.plannedExpenses || { transport:0, tada:0, vehicle:0, guest:0, team:0, other:0 };
+    transport.value=expenses.transport;
+    tada.value=expenses.tada;
+    vehicle.value=expenses.vehicle;
+    guest.value=expenses.guest;
+    team.value=expenses.team;
+    other.value=expenses.other;
+    advanceRequired.value=t.advanceTaken>0?'Yes':'No';
+    advanceAmount.value=t.advanceTaken;
+
+    // Check if Approved or Rejected
+    if(t.status==='Approved' || t.status==='Rejected') readOnly = true;
+  }else{
+    document.querySelectorAll('input,textarea').forEach(f=>f.value='');
+    travelType.value='Select Travel Type';
+    advanceRequired.value='No';
+  }
+
+  const fields = [travelType,purpose,fromDate,toDate,transport,vehicle,guest,team,other,advanceRequired,advanceAmount];
+  fields.forEach(f=>f.disabled=readOnly);
+  submitBtn.disabled = readOnly;
+
+  const showExpenses = ['Upcountry Travel','International Travel','Project-Based Travel'].includes(travelType.value);
+  expensesSection.classList.toggle('hidden',!showExpenses);
+  advanceSection.classList.toggle('hidden',!showExpenses || advanceRequired.value==='No');
+  advanceFields.classList.toggle('hidden',advanceRequired.value!=='Yes' || readOnly);
+}
+
+// Submit
+submitBtn.addEventListener('click',()=>{
+  const data = {
+    travelType: travelType.value,
+    purpose: purpose.value,
     fromDate: fromDate.value,
     toDate: toDate.value,
-    totalDays: parseInt(totalDays.value) || 0
+    totalDays: totalDays.value,
+    status:'Pending',
+    plannedExpenses:{
+      transport:+transport.value||0,
+      tada:+tada.value||0,
+      vehicle:+vehicle.value||0,
+      guest:+guest.value||0,
+      team:+team.value||0,
+      other:+other.value||0
+    },
+    advanceTaken: advanceRequired.value==='Yes'?+advanceAmount.value||0:0
   };
+  if(editingIndex!==null) travelRequests[editingIndex]=data;
+  else travelRequests.push(data);
 
-  // Save to localStorage
-  localStorage.setItem('plannedExpenses', JSON.stringify(plannedExpenses));
-  localStorage.setItem('advanceTaken', advanceTaken);
-  localStorage.setItem('travelInfo', JSON.stringify(travelInfo));
-
-  alert('Travel request submitted successfully!');
+  localStorage.setItem('travelRequests',JSON.stringify(travelRequests));
+  modal.style.display='none';
+  editingIndex=null;
+  render();
 });
 
+// Add / Close modal
+addBtn.onclick=()=>openForm();
+document.getElementById('closeBtn').onclick=()=>modal.style.display='none';
+
+// Filter
+const filterBtn = document.getElementById('filterBtn');
+const filterMenu = document.getElementById('filterMenu');
+filterBtn.onclick=()=>filterMenu.style.display = filterMenu.style.display==='none'?'block':'none';
+document.querySelectorAll('.filterOption').forEach(btn=>{
+  btn.onclick=()=>{
+    currentFilter=btn.dataset.status;
+    filterMenu.style.display='none';
+    render();
+  }
+});
+
+// Render
+function render(){
+  list.innerHTML='';
+  travelRequests.forEach((t,i)=>{
+    if(currentFilter!=='All' && t.status!==currentFilter) return;
+    const div=document.createElement('div');
+    div.className='card';
+    const expenses = t.plannedExpenses || { transport:0, tada:0, vehicle:0, guest:0, team:0, other:0 };
+    const totalExpense = Object.values(expenses).reduce((a,b)=>a+b,0);
+    div.innerHTML=`
+      <h4>${t.travelType}</h4>
+      <p>${t.fromDate} → ${t.toDate} (${t.totalDays} days)</p>
+      <p>Total Expense: Rs ${totalExpense}</p>
+      <span class="status-badge status-${t.status}">${t.status}</span>
+    `;
+
+    // Add Settle button if Approved
+    if(t.status==='Approved'){
+      const settleBtn = document.createElement('button');
+      settleBtn.textContent='Proceed to Settle';
+      settleBtn.className='settleBtn';
+      settleBtn.onclick = (e)=>{
+        e.stopPropagation(); // prevent modal open
+        // Save current travel to localStorage for postsettlement page
+        localStorage.setItem('settleTravel', JSON.stringify(t));
+        window.location.href='postsettlement.html';
+      };
+      div.appendChild(settleBtn);
+    }
+
+    div.onclick=()=>openForm(i);
+    list.appendChild(div);
+  });
+  if(list.innerHTML==='') list.innerHTML='<p>No travel requests.</p>';
+}
+
+// Initial render
+render();
 </script>
+
 </body>
 </html>

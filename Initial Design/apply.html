@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Request Form</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  width: 90%;
+  max-width: 900px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+}
+h2, h3 { color: #333; }
+section { margin-bottom: 25px; }
+label { display: block; margin: 8px 0 3px; font-weight: bold; }
+input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+input[readonly], input[disabled] { background: #eee; }
+button { padding: 10px 25px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+button:hover { background: #45a049; }
+.itinerary-day { margin-bottom: 5px; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Travel Request Form</h2>
+
+  <!-- Employee Info -->
+  <section>
+    <h3>Employee Information</h3>
+    <label>Employee ID</label><input type="text" placeholder="Auto" readonly>
+    <label>Employee Name</label><input type="text" placeholder="Auto" readonly>
+    <label>Department</label><input type="text" placeholder="Auto" readonly>
+  </section>
+
+  <!-- Travel Details -->
+  <section>
+    <h3>Travel Details</h3>
+    <label>Travel Type</label>
+    <select id="travelType">
+      <option>Select Travel Type</option>
+      <option>Local Travel</option>
+      <option>Upcountry Travel</option>
+      <option>Transit Market Travel</option>
+      <option>International Travel</option>
+      <option>Emergency Travel</option>
+      <option>Training / Conference Travel</option>
+      <option>Project-Based Travel</option>
+      <option>Client-Sponsored Travel</option>
+      <option>Transit / Layover Travel</option>
+    </select>
+    <label>Purpose of Travel</label>
+    <textarea placeholder="Enter purpose of travel"></textarea>
+  </section>
+
+  <!-- Travel Duration -->
+  <section>
+    <h3>Travel Duration</h3>
+    <label>From Date</label><input type="date" id="fromDate">
+    <label>To Date</label><input type="date" id="toDate">
+    <label>Total Days</label><input type="text" id="totalDays" placeholder="Auto Calculated" readonly>
+    <label>Weekend Included</label>
+    <select>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+    <div id="itinerary"></div>
+  </section>
+
+  <!-- Estimated Expenses -->
+  <section id="expensesSection" class="hidden">
+    <h3>Estimated Expenses</h3>
+    <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
+    <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
+    <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
+    <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
+    <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
+    <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
+  </section>
+
+  <!-- Advance -->
+  <section id="advanceSection" class="hidden">
+    <h3>Advance Request</h3>
+    <label>Advance Required</label>
+    <select id="advanceRequired">
+      <option>No</option>
+      <option>Yes</option>
+    </select>
+
+    <div id="advanceFields" class="hidden">
+      <label>Advance Amount Requested</label><input type="number" id="advanceAmount" placeholder="%">
+      <label>Existing Advances(Auto)</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
+      <label>Overdue Settlements(Auto)</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
+      <label>Eligibility Status</label><input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
+    </div>
+  </section>
+
+  <button id="submitBtn" disabled>Submit Request</button>
+</div>
+
+<script>
+// Auto-calc Total Days & generate itinerary
+const fromDate = document.getElementById('fromDate');
+const toDate = document.getElementById('toDate');
+const totalDays = document.getElementById('totalDays');
+const itineraryDiv = document.getElementById('itinerary');
+
+function generateItinerary() {
+  itineraryDiv.innerHTML = '';
+  if(fromDate.value && toDate.value){
+    const from = new Date(fromDate.value);
+    const to = new Date(toDate.value);
+    let diff = Math.floor((to - from)/(1000*60*60*24)) + 1;
+    diff = diff>0 ? diff : 0;
+    totalDays.value = diff;
+
+    for(let i=1;i<=diff;i++){
+      const label = document.createElement('label');
+      label.textContent = `Day ${i} Itinerary`;
+      label.className = 'itinerary-day';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Enter details';
+      itineraryDiv.appendChild(label);
+      itineraryDiv.appendChild(input);
+    }
+  }
+}
+fromDate.addEventListener('change', generateItinerary);
+toDate.addEventListener('change', generateItinerary);
+
+// Show Estimated Expenses only for certain travel types
+const travelTypeSelect = document.getElementById('travelType');
+const expensesSection = document.getElementById('expensesSection');
+const advanceSection = document.getElementById('advanceSection');
+travelTypeSelect.addEventListener('change', () => {
+  const val = travelTypeSelect.value;
+  if(['Upcountry Travel','Transit Market Travel','International Travel','Project-Based Travel'].includes(val)){
+    expensesSection.classList.remove('hidden');
+    advanceSection.classList.remove('hidden');
+    calculateTADA();
+  } else {
+    expensesSection.classList.add('hidden');
+    advanceSection.classList.add('hidden');
+  }
+});
+
+// Calculate TADA automatically based on total days
+const tadaInput = document.getElementById('tada');
+function calculateTADA(){
+  const days = parseInt(totalDays.value) || 0;
+  const rate = 1000; // example per day
+  tadaInput.value = days*rate;
+}
+fromDate.addEventListener('change', calculateTADA);
+toDate.addEventListener('change', calculateTADA);
+
+// Advance Request Show/Hide & Eligibility
+const advanceSelect = document.getElementById('advanceRequired');
+const advanceFields = document.getElementById('advanceFields');
+const existingAdv = document.getElementById('existingAdv');
+const overdue = document.getElementById('overdue');
+const eligibility = document.getElementById('eligibility');
+const submitBtn = document.getElementById('submitBtn');
+
+advanceSelect.addEventListener('change', ()=> {
+  advanceFields.classList.toggle('hidden', advanceSelect.value !== 'Yes');
+  checkEligibility();
+});
+existingAdv.addEventListener('input', checkEligibility);
+overdue.addEventListener('input', checkEligibility);
+document.getElementById('advanceAmount').addEventListener('input', checkEligibility);
+
+function checkEligibility(){
+  let ex = parseFloat(existingAdv.value) || 0;
+  let od = parseFloat(overdue.value) || 0;
+  if(ex === 0 && od === 0){
+    eligibility.value = "Eligible";
+    submitBtn.disabled = false;
+  } else {
+    eligibility.value = "Not Eligible";
+    submitBtn.disabled = true;
+  }
+}
+
+// Initialize on load
+window.addEventListener('load', ()=>{
+  advanceFields.classList.toggle('hidden', advanceSelect.value !== 'Yes');
+  checkEligibility();
+});
+submitBtn.addEventListener('click', () => {
+  // Gather planned expenses
+  const plannedExpenses = {
+    transport: parseFloat(document.getElementById('transport').value) || 0,
+    tada: parseFloat(document.getElementById('tada').value) || 0,
+    vehicle: parseFloat(document.getElementById('vehicle').value) || 0,
+    guest: parseFloat(document.getElementById('guest').value) || 0,
+    team: parseFloat(document.getElementById('team').value) || 0,
+    other: parseFloat(document.getElementById('other').value) || 0
+  };
+
+  // Gather advance info
+  const advanceTaken = advanceSelect.value === 'Yes' ? parseFloat(document.getElementById('advanceAmount').value) || 0 : 0;
+
+  // Gather travel info
+  const travelInfo = {
+    travelType: travelTypeSelect.value,
+    purpose: document.querySelector('textarea').value,
+    fromDate: fromDate.value,
+    toDate: toDate.value,
+    totalDays: parseInt(totalDays.value) || 0
+  };
+
+  // Save to localStorage
+  localStorage.setItem('plannedExpenses', JSON.stringify(plannedExpenses));
+  localStorage.setItem('advanceTaken', advanceTaken);
+  localStorage.setItem('travelInfo', JSON.stringify(travelInfo));
+
+  alert('Travel request submitted successfully!');
+});
+
+</script>
+</body>
+</html>
