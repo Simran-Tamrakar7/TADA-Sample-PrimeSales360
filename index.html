@@ -1,89 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel & Reimbursement Portal</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.tab-bar { display: flex; overflow-x: auto; background: #f0f0f0; border-bottom: 2px solid #ddd; }
-.tab-bar button { flex: 1; min-width: 100px; padding: 12px; border: none; cursor: pointer; background: #ddd; font-weight: bold; position: relative; }
-.tab-bar button.active { background: #4CAF50; color: #fff; }
-.tab-bar button .badge { position: absolute; top: 5px; right: 10px; background: #f44336; color: #fff; font-size: 12px; padding: 2px 6px; border-radius: 50%; }
-.breadcrumb { padding: 10px 20px; font-size: 14px; background: #fafafa; border-bottom: 1px solid #ddd; }
-#fab { position: fixed; bottom: 25px; right: 25px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 32px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-#fab.hidden { display: none; }
-.tab-content { padding: 20px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel & Reimbursement Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tab-bar {
+      display: flex;
+      overflow-x: auto;
+      background: #f0f0f0;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .tab-bar button {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px;
+      border: none;
+      cursor: pointer;
+      background: #ddd;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .tab-bar button.active {
+      background: #4CAF50;
+      color: #fff;
+    }
+
+    .tab-bar button .badge {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: #f44336;
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    .breadcrumb {
+      padding: 10px 20px;
+      font-size: 14px;
+      background: #fafafa;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #fab {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 32px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    #fab.hidden {
+      display: none;
+    }
+
+    .tab-content {
+      padding: 20px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="breadcrumb">☰ > Live Section > Travel & Re-Imbursements > <span id="currentScreen">Dashboard</span></div>
+  <div class="breadcrumb">☰ > Live Section > Travel & Re-Imbursements > <span id="currentScreen">Dashboard</span></div>
 
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="dashboard">Dashboard <span class="badge" id="dashboardBadge">2</span></button>
-  <button class="tab-btn" data-tab="travel">Travel</button>
-  <button class="tab-btn" data-tab="expenses">Expenses</button>
-  <button class="tab-btn" data-tab="settle">Settle</button>
-  <button class="tab-btn" data-tab="advance">Advance</button>
-  <button class="tab-btn" data-tab="more">More</button>
-</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="dashboard">Dashboard <span class="badge"
+        id="dashboardBadge">2</span></button>
+    <button class="tab-btn" data-tab="travel">Travel</button>
+    <button class="tab-btn" data-tab="expenses">Expenses</button>
+    <button class="tab-btn" data-tab="advance">Advance</button>
+    <button class="tab-btn" data-tab="settle">Settle</button>
+    <button class="tab-btn" data-tab="approval">Approval</button>
+    <button class="tab-btn" data-tab="more">More</button>
+  </div>
 
-<div id="tabContent" class="tab-content"></div>
+  <div id="tabContent" class="tab-content"></div>
 
-<button id="fab">+</button>
+  <button id="fab">+</button>
 
-<script>
-const tabContentMap = {
-  dashboard: `<iframe src="dashboard.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  travel: `<iframe src="apply.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  expenses: `<iframe src="expenses.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  settle: `<iframe src="postsettlement.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  advance: `<iframe src="advance.html" style="width:100%;height:80vh;border:none;"></iframe>`,
-  more: `<iframe src="more.html" style="width:100%;height:80vh;border:none;"></iframe>`
+  <script>
+    const tabContentMap = {
+      dashboard: `<iframe src="dashboard.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      travel: `<iframe src="travel-apply.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      expenses: `<iframe src="expenses.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      advance: `<iframe src="advance.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      settle: `<iframe src="postsettlement.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      approval: `<iframe src="approval.html" style="width:100%;height:80vh;border:none;"></iframe>`,
+      more: `<iframe src="more.html" style="width:100%;height:80vh;border:none;"></iframe>`
+    };
+
+    // const fabActions = {
+    //   dashboard: '+',
+    //   travel: '+',
+    //   expenses: '+',
+    //   settle: '+',
+    //   advance: '+',
+    //   more: ''
+    // };
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContent = document.getElementById('tabContent');
+    const currentScreen = document.getElementById('currentScreen');
+    const fab = document.getElementById('fab');
+
+    function loadTab(tab) {
+      tabContent.innerHTML = tabContentMap[tab] || '';
+      currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+      fab.classList.toggle('hidden', fabActions[tab] === '');
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadTab(btn.dataset.tab);
+      });
+    });
+
+    loadTab('dashboard');
+    window.loadTab = function(tab, subview = '') {
+  let iframeSrc = '';
+  switch(tab) {
+    case 'dashboard': iframeSrc = 'dashboard.html'; break;
+    case 'travel': 
+      iframeSrc = 'travel-requests.html'; // travel list + form modal
+      break;
+    case 'expenses': iframeSrc = 'expenses.html'; break;
+    case 'advance': iframeSrc = 'advance.html'; break;
+    case 'settle': iframeSrc = 'postsettlement.html'; break;
+    case 'approval': iframeSrc = 'approval.html'; break;
+    case 'more': iframeSrc = 'more.html'; break;
+  }
+
+  tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}" style="width:100%;height:80vh;border:none;"></iframe>`;
+  currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+
+  // After iframe loads, trigger subview actions
+  const iframe = document.getElementById('tabIframe');
+  iframe.onload = () => {
+    if(subview === 'apply' && iframe.contentWindow && typeof iframe.contentWindow.openForm === 'function'){
+      iframe.contentWindow.openForm(); // open travel apply modal
+    }
+  }
 };
 
-// const fabActions = {
-//   dashboard: '+',
-//   travel: '+',
-//   expenses: '+',
-//   settle: '+',
-//   advance: '+',
-//   more: ''
-// };
 
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabContent = document.getElementById('tabContent');
-const currentScreen = document.getElementById('currentScreen');
-const fab = document.getElementById('fab');
-
-function loadTab(tab){
-  tabContent.innerHTML = tabContentMap[tab] || '';
-  currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
-  fab.classList.toggle('hidden', fabActions[tab]==='');
-}
-
-tabButtons.forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    tabButtons.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    loadTab(btn.dataset.tab);
-  });
-});
-
-loadTab('dashboard');
-
-fab.addEventListener('click', ()=>{
-  const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-  switch(activeTab){
-    case 'dashboard': alert('Choose "+ New Travel" or "+ Add Expense"'); break;
-    case 'travel': alert('Opening New Travel Request'); break;
-    case 'expenses': alert('Opening Add Expense Form'); break;
-    case 'settle': alert('Opening Submit Settlement'); break;
-    case 'advance': alert('Opening Upload Receipt'); break;
-  }
-});
-</script>
+  </script>
 
 </body>
+
 </html>

@@ -3,162 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Status</title>
+<title>Dashboard</title>
 <style>
-body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
-.container { width:95%; max-width:1200px; margin:30px auto; background:#fff; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
-h2{color:#333; margin-bottom:15px;}
-.module-section { margin-bottom:30px; }
-.module-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-.module-header h3{margin:0;}
-.counter { background:#4CAF50;color:#fff;border-radius:50%;padding:2px 7px;font-size:12px; }
-.accordion { margin-bottom:10px; border-radius:6px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-.accordion-header { background:#eee; padding:10px 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:bold; }
-.accordion-body { max-height:0; overflow:hidden; transition:max-height 0.3s ease; background:#fafafa;}
-.card { padding:10px 15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; }
-.card:last-child{border-bottom:none;}
-.card-info{display:flex; flex-direction:column;}
-.card-info span{margin-bottom:3px;}
-button{padding:6px 12px; border:none; border-radius:5px; cursor:pointer; font-size:14px;}
-button.approve{background:#4CAF50; color:#fff;}
-button.reject{background:#f44336; color:#fff;}
-.status-pending{color:#FFA500;}
-.status-approved{color:#4CAF50;}
-.status-rejected{color:#f44336;}
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0;}
+.container { width:95%; max-width:1200px; margin:20px auto; background:#fff; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+h2,h3 { color:#333; margin-bottom:15px;}
+.section { margin-bottom:30px;}
+.action-cards, .pending-cards { display:flex; gap:15px; flex-wrap:wrap;}
+.card { background:#f9f9f9; padding:15px; border-radius:8px; flex:1 1 200px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+.card span { font-weight:bold;}
+.list-card { background:#fafafa; padding:10px 15px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.list-card:hover { background:#f0f0f0; cursor:pointer;}
+.status-pending { color:#FFA500;}
+.status-approved { color:#4CAF50;}
+.status-rejected { color:#f44336;}
+.quick-title { font-weight:bold;}
+.badge { background:#4CAF50; color:#fff; border-radius:50%; padding:3px 8px; font-size:12px;}
 </style>
 </head>
 <body>
 
 <div class="container">
-<h2>Approval Dashboard</h2>
+  <h2>My Dashboard</h2>
 
-<div id="approvalContent">
-  <!-- All modules will be injected here dynamically -->
-</div>
+  <!-- Pending Actions -->
+  <div class="section">
+    <h3>Pending Actions</h3>
+    <div class="pending-cards">
+      <div class="card" id="travelCard">Travel Requests <span class="badge" id="travelBadge">0</span></div>
+      <div class="card" id="expensesCard">Expenses <span class="badge" id="expensesBadge">0</span></div>
+      <div class="card" id="settleCard">Settlements <span class="badge" id="settleBadge">0</span></div>
+      <div class="card" id="advanceCard">Advance Requests <span class="badge" id="advanceBadge">0</span></div>
+    </div>
+  </div>
+
+  <!-- Outstanding Advance Summary -->
+  <div class="section">
+    <h3>Outstanding Advance Summary</h3>
+    <p>Total Outstanding Advance: <span id="outstandingAdvance">0</span></p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section">
+    <h3>Quick Actions</h3>
+    <div class="action-cards">
+      <div class="card" id="applyTravelCard"><span class="quick-title">Apply Travel</span></div>
+      <div class="card" id="addExpenseCard"><span class="quick-title">Add Expense</span></div>
+      <div class="card" id="requestAdvanceCard"><span class="quick-title">Request Advance</span></div>
+      <div class="card" id="settleTravelCard"><span class="quick-title">Settle Travel</span></div>
+    </div>
+  </div>
+
+  <!-- Recent Travel Requests -->
+  <div class="section">
+    <h3>Recent Travel Requests</h3>
+    <div id="recentTravelList"></div>
+  </div>
+
+  <!-- Recent Expenses -->
+  <div class="section">
+    <h3>Recent Expenses</h3>
+    <div id="recentExpensesList"></div>
+  </div>
 
 </div>
 
 <script>
-// ======= MODULE NAMES =======
-const modules = ['Travel Requests', 'Expenses', 'Post-Travel Settlements', 'Advance Requests'];
-
-// ======= FETCH DATA =======
-function getModuleData(name){
-  switch(name){
-    case 'Travel Requests':
-      const travel = JSON.parse(localStorage.getItem('travelRequests')||'[]');
-      return travel.map(t => ({...t, status: t.status || 'Pending'}));
-    case 'Expenses':
-      const expenses = JSON.parse(localStorage.getItem('addedExpenses')||'[]');
-      return expenses.map(e => ({...e, status: e.status || 'Pending'}));
-    case 'Post-Travel Settlements':
-      const settlements = JSON.parse(localStorage.getItem('postSettlements')||'[]');
-      return settlements.map(s => ({...s, status: s.status || 'Pending'}));
-    case 'Advance Requests':
-      const advances = JSON.parse(localStorage.getItem('advanceRequests')||'[]');
-      return advances.map(a => ({...a, status: a.status || 'Pending'}));
-    default: return [];
-  }
+// -----------------------------
+// Dummy data for demo/testing
+// -----------------------------
+if (!localStorage.getItem('requests')) {
+  const demoData = [
+    {id:1,type:'Travel Requests',creator:'user@example.com',purpose:'Client Meeting',status:'Pending',date:'2026-01-15'},
+    {id:2,type:'Travel Requests',creator:'user@example.com',purpose:'Conference',status:'Pending',date:'2026-01-14'},
+    {id:3,type:'Expenses',creator:'user@example.com',purpose:'Taxi',amount:25,status:'Approved',date:'2026-01-13'},
+    {id:4,type:'Advance Requests',creator:'user@example.com',amount:500,status:'Approved',settled:false,date:'2026-01-10'},
+    {id:5,type:'Expenses',creator:'user@example.com',purpose:'Lunch',amount:15,status:'Pending',date:'2026-01-12'},
+    {id:6,type:'Advance Requests',creator:'other@example.com',amount:200,status:'Approved',settled:false,date:'2026-01-11'}
+  ];
+  localStorage.setItem('requests', JSON.stringify(demoData));
 }
 
-// ======= SAVE DATA =======
-function saveModuleData(name, data){
-  switch(name){
-    case 'Travel Requests': localStorage.setItem('travelRequests', JSON.stringify(data)); break;
-    case 'Expenses': localStorage.setItem('addedExpenses', JSON.stringify(data)); break;
-    case 'Post-Travel Settlements': localStorage.setItem('postSettlements', JSON.stringify(data)); break;
-    case 'Advance Requests': localStorage.setItem('advanceRequests', JSON.stringify(data)); break;
-  }
+// -----------------------------
+// Functions
+// -----------------------------
+const currentUser = 'user@example.com';
+
+function getUserRequests() {
+  return JSON.parse(localStorage.getItem('requests') || '[]').filter(r => r.creator === currentUser);
 }
 
-// ======= RENDER MODULE =======
-function renderModule(name){
-  const data = getModuleData(name);
-  const pending = data.filter(d=>d.status==='Pending');
-  const approved = data.filter(d=>d.status==='Approved');
-  const rejected = data.filter(d=>d.status==='Rejected');
+// Update Pending Actions
+function updatePendingBadges() {
+  const requests = getUserRequests();
+  document.getElementById('travelBadge').textContent = requests.filter(r => r.type==='Travel Requests' && r.status==='Pending').length;
+  document.getElementById('expensesBadge').textContent = requests.filter(r => r.type==='Expenses' && r.status==='Pending').length;
+  document.getElementById('settleBadge').textContent = requests.filter(r => r.type==='Post-Travel Settlements' && r.status==='Pending').length;
+  document.getElementById('advanceBadge').textContent = requests.filter(r => r.type==='Advance Requests' && r.status==='Pending').length;
 
-  const renderAccordion = (title, arr, statusClass) => `
-    <div class="accordion">
-      <div class="accordion-header">${title} (${arr.length})</div>
-      <div class="accordion-body">
-        ${arr.map((item,i)=>`
-          <div class="card">
-            <div class="card-info">
-              ${Object.entries(item).map(([k,v])=>`<span>${k}: <span class="status-${statusClass}">${v}</span></span>`).join('')}
-            </div>
-            <div class="card-actions">
-              ${statusClass==='pending' ? `<button class="approve" data-module="${name}" data-index="${i}">Approve</button>
-              <button class="reject" data-module="${name}" data-index="${i}">Reject</button>` : ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  
-  return `
-    <div class="module-section">
-      <div class="module-header">
-        <h3>${name}</h3>
-        <span class="counter">Total: ${data.length}</span>
-      </div>
-      ${renderAccordion('Pending', pending, 'pending')}
-      ${renderAccordion('Approved', approved, 'approved')}
-      ${renderAccordion('Rejected', rejected, 'rejected')}
-    </div>
-  `;
+  // Click Pending Actions → go to LIST view
+  document.getElementById('travelCard').onclick = () => parent.loadTab('travel'); // list
+  document.getElementById('expensesCard').onclick = () => parent.loadTab('expenses'); // list
+  document.getElementById('settleCard').onclick = () => parent.loadTab('settle'); // list
+  document.getElementById('advanceCard').onclick = () => parent.loadTab('advance'); // list
 }
 
-// ======= RENDER DASHBOARD =======
-function renderDashboard(){
-  const container = document.getElementById('approvalContent');
-  container.innerHTML = modules.map(renderModule).join('');
+// Outstanding Advance
+function updateOutstandingAdvance() {
+  const requests = getUserRequests();
+  const total = requests.filter(r => r.type==='Advance Requests' && r.status==='Approved' && !r.settled)
+                        .reduce((sum,r)=>sum+(r.amount||0),0);
+  document.getElementById('outstandingAdvance').textContent = total;
+}
 
-  // Accordion toggle
-  document.querySelectorAll('.accordion-header').forEach(accHeader=>{
-    accHeader.addEventListener('click', ()=>{
-      const body = accHeader.nextElementSibling;
-      body.style.maxHeight = body.style.maxHeight && body.style.maxHeight!=='0px' ? '0px' : body.scrollHeight+'px';
-    });
-  });
-
-  // Approve buttons
-  document.querySelectorAll('.approve').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const moduleName = btn.dataset.module;
-      const index = parseInt(btn.dataset.index);
-      let data = getModuleData(moduleName);
-      const pendingItems = data.filter(d=>d.status==='Pending');
-      const item = pendingItems[index];
-      if(item){
-        item.status = 'Approved';
-        saveModuleData(moduleName, data);
-        renderDashboard();
-      }
-    });
-  });
-
-  // Reject buttons
-  document.querySelectorAll('.reject').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const moduleName = btn.dataset.module;
-      const index = parseInt(btn.dataset.index);
-      let data = getModuleData(moduleName);
-      const pendingItems = data.filter(d=>d.status==='Pending');
-      const item = pendingItems[index];
-      if(item){
-        item.status = 'Rejected';
-        saveModuleData(moduleName, data);
-        renderDashboard();
-      }
-    });
+// Render Recent Travel
+function renderRecentTravel() {
+  const container = document.getElementById('recentTravelList');
+  container.innerHTML = '';
+  const travels = getUserRequests().filter(r=>r.type==='Travel Requests').sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  if(travels.length===0) container.innerHTML = '<p>No recent travel requests</p>';
+  travels.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'list-card';
+    div.innerHTML = `<span>${t.purpose}</span> <span class="status-${t.status.toLowerCase()}">${t.status}</span>`;
+    div.onclick = () => parent.loadTab('travel'); // list
+    container.appendChild(div);
   });
 }
 
-// ======= INITIAL RENDER =======
-renderDashboard();
+// Render Recent Expenses
+function renderRecentExpenses() {
+  const container = document.getElementById('recentExpensesList');
+  container.innerHTML = '';
+  const expenses = getUserRequests().filter(r=>r.type==='Expenses').sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  if(expenses.length===0) container.innerHTML = '<p>No recent expenses</p>';
+  expenses.forEach(e=>{
+    const div = document.createElement('div');
+    div.className = 'list-card';
+    div.innerHTML = `<span>${e.purpose || e.amount}</span> <span class="status-${e.status.toLowerCase()}">${e.status}</span>`;
+    div.onclick = () => parent.loadTab('expenses'); // list
+    container.appendChild(div);
+  });
+}
+
+// Quick Action cards → go to APPLY/ADD form
+document.getElementById('applyTravelCard').onclick = () => parent.loadTab('travel', 'apply'); 
+document.getElementById('addExpenseCard').onclick = () => parent.loadTab('expenses', 'add'); 
+document.getElementById('requestAdvanceCard').onclick = () => parent.loadTab('advance'); 
+document.getElementById('settleTravelCard').onclick = () => parent.loadTab('settle'); 
+
+// Initialize Dashboard
+updatePendingBadges();
+updateOutstandingAdvance();
+renderRecentTravel();
+renderRecentExpenses();
 </script>
-
 </body>
 </html>
