@@ -3,168 +3,314 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monthly TADA Report (Mock Data)</title>
+<title>Monthly Reports</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
   background: #f5f5f5;
   margin: 0;
-}
-.container {
-  max-width: 1100px;
-  margin: 20px auto;
-  background: #fff;
   padding: 20px;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.filters {
+  background: #fff;
+  padding: 15px;
   border-radius: 10px;
-}
-.header {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 15px;
 }
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #555;
+  min-width: 160px;
+}
+
+.filters input,
+.filters select {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.search-box {
+  flex: 1;
+}
+
+button {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-reset {
+  background: #eee;
+}
+.btn-reset:hover {
+  background: #ddd;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+
 th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background: #4CAF50;
+  color: #fff;
+}
+
+tr:hover {
+  background: #f1f9f1;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #fff;
+}
+.status.Pending { background: #FF9800; }
+.status.Approved { background: #4CAF50; }
+.status.Rejected { background: #F44336; }
+
+.empty {
   text-align: center;
+  padding: 30px;
+  color: #777;
+  font-style: italic;
 }
-tfoot td {
+
+.total {
+  margin-top: 15px;
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  text-align: right;
+  font-size: 16px;
   font-weight: bold;
-}
-.yellow { background: #fff7cc; }
-.green { background: #c8e6c9; }
-.red { background: #ffcdd2; }
-select {
-  padding: 6px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <div class="header">
-    <h2>Monthly TADA Report</h2>
-    <div>
-      <select id="year"></select>
-      <select id="month"></select>
-      <button onclick="generate()">Generate</button>
-    </div>
-  </div>
+<h2>Monthly Reports</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Day</th>
-        <th>Visit</th>
-        <th>Total (Rs.)</th>
-        <th>Remarks</th>
-      </tr>
-    </thead>
-    <tbody id="body"></tbody>
-    <tfoot>
-      <tr>
-        <td colspan="3">Total Amount</td>
-        <td class="yellow" id="total">0</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td colspan="3">Approved</td>
-        <td class="green" id="approved">0</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td colspan="3">Rejected</td>
-        <td class="red" id="rejected">0</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
+<div class="filters">
+
+  <label class="search-box">
+    Search
+    <input type="text" id="searchInput">
+  </label>
+
+  <label>
+    Report Type
+    <select id="reportType">
+      <option value="expense">Expense</option>
+      <option value="tada">TADA</option>
+    </select>
+  </label>
+
+  <label>
+    Month
+    <input type="month" id="monthFilter">
+  </label>
+
+  <label>
+    Status
+    <select id="statusFilter">
+      <option value="All">All</option>
+      <option value="Pending">Pending</option>
+      <option value="Approved">Approved</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+  </label>
+
+  <button class="btn-reset" onclick="resetFilters()">Reset</button>
+
 </div>
 
+<table>
+  <thead>
+    <tr id="tableHeader"></tr>
+  </thead>
+  <tbody id="reportBody"></tbody>
+</table>
+
+<div class="total" id="totalAmount">Total: Rs 0</div>
+
 <script>
-const yearSel = document.getElementById('year');
-const monthSel = document.getElementById('month');
+const reportBody = document.getElementById('reportBody');
+const totalAmount = document.getElementById('totalAmount');
+const monthFilter = document.getElementById('monthFilter');
+const statusFilter = document.getElementById('statusFilter');
+const searchInput = document.getElementById('searchInput');
+const reportType = document.getElementById('reportType');
+const tableHeader = document.getElementById('tableHeader');
 
-const daysName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+/* DATE FORMAT */
+function formatDate(d){
+  if(!d) return '-';
+  return new Date(d).toLocaleDateString('en-GB',{
+    day:'2-digit', month:'short', year:'numeric'
+  });
+}
 
-(function init() {
-  const y = new Date().getFullYear();
-  for (let i = y - 3; i <= y + 1; i++) {
-    yearSel.innerHTML += `<option value="${i}">${i}</option>`;
+/* DATA */
+function getData(type){
+  try {
+    return JSON.parse(
+      localStorage.getItem(type === 'tada' ? 'travelRequests' : 'addedExpenses')
+    ) || [];
+  } catch {
+    return [];
+  }
+}
+
+/* PLACEHOLDER HANDLER */
+function updatePlaceholder(){
+  searchInput.placeholder =
+    reportType.value === 'tada'
+      ? 'Search Travel Type (e.g. Local Travel, Upcountry Travel)'
+      : 'Search Expense Type (e.g. TADA, Transport)';
+}
+
+/* RESET */
+function resetFilters(){
+  searchInput.value = '';
+  monthFilter.value = '';
+  statusFilter.value = 'All';
+  renderTable();
+}
+
+/* RENDER */
+function renderTable(){
+  const type = reportType.value;
+  const data = getData(type);
+
+  const month = monthFilter.value;
+  const status = statusFilter.value.toLowerCase();
+  const search = searchInput.value.toLowerCase();
+
+  const filtered = data.filter(item => {
+    let ok = true;
+
+    const dateVal = type === 'tada' ? item.fromDate : item.date;
+
+    if(month && dateVal){
+      ok = dateVal.startsWith(month);
+    }
+
+    if(ok && status !== 'all'){
+      ok = (item.status || 'Pending').toLowerCase() === status;
+    }
+
+    if(ok && search){
+      ok = type === 'tada'
+        ? (item.travelType || '').toLowerCase().includes(search)
+        : (item.type || '').toLowerCase().includes(search);
+    }
+
+    return ok;
+  });
+
+  tableHeader.innerHTML = type === 'tada' ? `
+    <th>#</th>
+    <th>Date</th>
+    <th>Purpose</th>
+    <th>Travel Type</th>
+    <th>Total TADA (Rs)</th>
+    <th>Status</th>
+  ` : `
+    <th>#</th>
+    <th>Date</th>
+    <th>Expense Type</th>
+    <th>Amount (Rs)</th>
+    <th>Status</th>
+  `;
+
+  reportBody.innerHTML = '';
+
+  if(filtered.length === 0){
+    reportBody.innerHTML = `
+      <tr>
+        <td colspan="${type === 'tada' ? 6 : 5}" class="empty">
+          No records found
+        </td>
+      </tr>
+    `;
+    totalAmount.textContent = 'Total: Rs 0';
+    return;
   }
 
-  const months = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December'
-  ];
-  months.forEach((m,i)=>{
-    monthSel.innerHTML += `<option value="${i}">${m}</option>`;
-  });
-})();
+  let total = 0;
 
-function generate() {
-  const year = +yearSel.value;
-  const month = +monthSel.value;
-  const tbody = document.getElementById('body');
-  tbody.innerHTML = '';
-
-  let total = 0, approved = 0, rejected = 0;
-
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    const day = date.getDay();
-    let visit = 1;
-    let amount = 0;
-    let remark = 'P';
-
-    // Saturday = Holiday
-    if (day === 6) {
-      visit = 0;
-      remark = 'H';
-    }
-    // Random leave
-    else if (Math.random() < 0.08) {
-      visit = 0;
-      remark = 'L';
-    }
-    // Random rejected
-    else if (Math.random() < 0.05) {
-      amount = 315;
-      remark = 'R';
-      rejected += amount;
-    }
-    // Normal working day
-    else {
-      amount = Math.random() < 0.6 ? 315 : 0;
-      approved += amount;
-    }
+  filtered.forEach((item, i) => {
+    const amount = type === 'tada'
+      ? (item.plannedExpenses?.tada || 0)
+      : (item.amount || 0);
 
     total += amount;
 
-    tbody.innerHTML += `
+    reportBody.innerHTML += `
       <tr>
-        <td>${date.toISOString().split('T')[0]}</td>
-        <td>${daysName[day]}</td>
-        <td>${visit}</td>
+        <td>${i+1}</td>
+        <td>${formatDate(type === 'tada' ? item.fromDate : item.date)}</td>
+        <td>${item.purpose || item.type || '-'}</td>
+        ${type === 'tada' ? `<td>${item.travelType || '-'}</td>` : ''}
         <td>${amount}</td>
-        <td>${remark}</td>
+        <td>
+          <span class="status ${item.status || 'Pending'}">
+            ${item.status || 'Pending'}
+          </span>
+        </td>
       </tr>
     `;
+  });
 
-    date.setDate(date.getDate() + 1);
-  }
-
-  document.getElementById('total').innerText = total;
-  document.getElementById('approved').innerText = approved;
-  document.getElementById('rejected').innerText = rejected;
+  totalAmount.textContent = `Total: Rs ${total}`;
 }
+
+/* EVENTS */
+[monthFilter, statusFilter, searchInput].forEach(el =>
+  el.addEventListener('input', renderTable)
+);
+
+reportType.addEventListener('change', () => {
+  updatePlaceholder();
+  renderTable();
+});
+
+/* INIT */
+updatePlaceholder();
+renderTable();
 </script>
 
 </body>
