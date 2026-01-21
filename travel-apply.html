@@ -105,28 +105,36 @@ button:disabled { background:#aaa; cursor:not-allowed; }
       <div id="itinerary"></div>
     </section>
 
-    <section id="expensesSection" class="hidden">
-      <h3>Estimated Expenses</h3>
-      <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
-      <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
-      <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
-      <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
-      <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
-      <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
-    </section>
-
-    <section id="advanceSection" class="hidden">
+    <!-- Advance Section -->
+    <section id="advanceSection">
       <h3>Advance</h3>
       <label>Advance Required</label>
       <select id="advanceRequired">
         <option>No</option>
         <option>Yes</option>
       </select>
+
       <div id="advanceFields" class="hidden">
-        <label>Advance Amount Requested</label><input type="number" id="advanceAmount" placeholder="%">
-        <label>Existing Advances(Auto)</label><input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
-        <label>Overdue Settlements(Auto)</label><input type="number" id="overdue" placeholder="Rs0.00" value="0">
-        <label>Eligibility Status</label><input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
+        <label>Advance Amount Requested</label>
+        <input type="number" id="advanceAmount" placeholder="%">
+
+        <!-- Expenses inside advance -->
+        <section id="expensesSection" class="hidden">
+          <h3>Estimated Expenses</h3>
+          <label>Transport</label><input type="text" placeholder="Rs0.00" id="transport">
+          <label>TADA</label><input type="text" placeholder="Auto Calculated" readonly id="tada">
+          <label>Vehicle Rental</label><input type="text" placeholder="Rs0.00" id="vehicle">
+          <label>Guest & Entertainment</label><input type="text" placeholder="Rs0.00" id="guest">
+          <label>Team Meeting</label><input type="text" placeholder="Rs0.00" id="team">
+          <label>Other Expenses</label><input type="text" placeholder="Rs0.00" id="other">
+        </section>
+
+        <label>Existing Advances (Auto)</label>
+        <input type="number" id="existingAdv" placeholder="Rs0.00" value="0">
+        <label>Overdue Settlements (Auto)</label>
+        <input type="number" id="overdue" placeholder="Rs0.00" value="0">
+        <label>Eligibility Status</label>
+        <input type="text" id="eligibility" placeholder="Eligible / Not Eligible" readonly>
       </div>
     </section>
 
