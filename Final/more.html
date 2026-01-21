@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>More</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+}
+
+.container {
+  padding: 20px;
+}
+
+.section {
+  margin-bottom: 25px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:hover {
+  background: #f9f9f9;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #e8f5e9;
+  color: #4CAF50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.arrow {
+  color: #999;
+  font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- REPORTS -->
+  <div class="section">
+    <div class="section-title">Reports</div>
+    <div class="card">
+
+      <div class="list-item" onclick="go('More/monthly-tada.html')">
+        <div class="left">
+          <div class="icon">T</div>
+          <div>Monthly TADA Report</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="list-item" onclick="go('More/monthly-expense-tada.html')">
+        <div class="left">
+          <div class="icon">E</div>
+          <div>Monthly Expense Report</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POLICIES -->
+  <div class="section">
+    <div class="section-title">Policies</div>
+    <div class="card">
+
+      <div class="list-item" onclick="alert('Travel Policy page not created yet')">
+        <div class="left">
+          <div class="icon">P</div>
+          <div>Travel Policy</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="list-item" onclick="alert('Expense Policy page not created yet')">
+        <div class="left">
+          <div class="icon">₹</div>
+          <div>Expense Policy</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUPPORT -->
+  <div class="section">
+    <div class="section-title">Support</div>
+    <div class="card">
+
+      <div class="list-item" onclick="alert('Help page not created yet')">
+        <div class="left">
+          <div class="icon">?</div>
+          <div>Help & Support</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="list-item" onclick="alert('FAQ page not created yet')">
+        <div class="left">
+          <div class="icon">F</div>
+          <div>FAQs</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="section">
+    <div class="section-title">Settings</div>
+    <div class="card">
+
+      <div class="list-item" onclick="alert('Profile page not created yet')">
+        <div class="left">
+          <div class="icon">U</div>
+          <div>My Profile</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="list-item" onclick="alert('Settings page not created yet')">
+        <div class="left">
+          <div class="icon">⚙</div>
+          <div>App Settings</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function go(page) {
+  window.location.href = page;
+}
+</script>
+
+</body>
+</html>

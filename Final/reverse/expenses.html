@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expenses</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
+h2,h3 { color:#333; }
+label { display:block; margin:8px 0 3px; font-weight:bold; }
+input,select { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+button { padding:10px 25px; background:#4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+button:disabled { background:#aaa; cursor:not-allowed; }
+.card { background:#fff; padding:15px; margin:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.1); cursor:pointer; }
+.fab { position:fixed; bottom:25px; right:25px; width:60px; height:60px; border-radius:50%; font-size:32px; background:#4CAF50; color:#fff; border:none; }
+.hidden { display:none; }
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); justify-content:center; align-items:center; }
+.modal-content { background:#fff; padding:20px; border-radius:10px; width:90%; max-width:500px; max-height:90%; overflow-y:auto; }
+.filterBox { display:none; position:absolute; right:20px; top:50px; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); padding:15px; width:220px; }
+.filterBox label { margin:5px 0 2px; font-weight:normal; }
+.status-badge { padding:4px 8px; border-radius:6px; color:#fff; display:inline-block; margin-top:5px; }
+.status-Pending { background:#ffc107; }
+.status-Approved { background:#4CAF50; }
+.status-Rejected { background:#f44336; }
+</style>
+</head>
+<body>
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+  <h2>My Expenses</h2>
+  <button id="filterBtn">Filter ▼</button>
+</div>
+
+<div id="filterBox" class="filterBox">
+  <label>Status:</label>
+  <select id="filterStatus">
+    <option>All</option>
+    <option>Pending</option>
+    <option>Approved</option>
+    <option>Rejected</option>
+  </select>
+  <label>Expense Type:</label>
+  <select id="filterType">
+    <option>All</option>
+    <option>Transport</option>
+    <option>TADA</option>
+    <option>Vehicle Rental/Fuel</option>
+    <option>Guest & Entertainment</option>
+    <option>Team Meeting</option>
+    <option>Other</option>
+  </select>
+</div>
+
+<div id="expenseList"></div>
+<button class="fab" id="addBtn">+</button>
+
+<!-- MODAL -->
+<div id="formModal" class="modal">
+  <div class="modal-content">
+    <h3 id="formTitle">Add Expense</h3>
+
+    <label>Date</label>
+    <input type="date" id="expenseDate">
+
+    <label>Expense Type</label>
+    <select id="expenseType">
+      <option>Transport</option>
+      <option>TADA</option>
+      <option>Vehicle Rental/Fuel</option>
+      <option>Guest & Entertainment</option>
+      <option>Team Meeting</option>
+      <option>Other</option>
+    </select>
+
+    <label>Amount</label>
+    <input type="number" id="expenseAmount" placeholder="Enter amount">
+
+    <label>Upload Receipt</label>
+    <input type="file" id="receiptFile">
+
+    <div style="text-align:right;margin-top:10px;">
+      <button id="submitBtn">Submit</button>
+      <button id="closeBtn" style="background:#ccc;color:#000;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Data
+let expenses = JSON.parse(localStorage.getItem('addedExpenses')||'[]');
+let editingIndex = null;
+let currentStatusFilter = 'All';
+let currentTypeFilter = 'All';
+
+// Elements
+const list = document.getElementById('expenseList');
+const modal = document.getElementById('formModal');
+const addBtn = document.getElementById('addBtn');
+const submitBtn = document.getElementById('submitBtn');
+
+const expenseDate = document.getElementById('expenseDate');
+const expenseType = document.getElementById('expenseType');
+const expenseAmount = document.getElementById('expenseAmount');
+const receiptFile = document.getElementById('receiptFile');
+
+const filterBtn = document.getElementById('filterBtn');
+const filterBox = document.getElementById('filterBox');
+const filterStatus = document.getElementById('filterStatus');
+const filterType = document.getElementById('filterType');
+
+// Render expenses
+function render(){
+  list.innerHTML='';
+  expenses.forEach((exp,i)=>{
+    if(currentStatusFilter!=='All' && exp.status!==currentStatusFilter) return;
+    if(currentTypeFilter!=='All' && exp.type!==currentTypeFilter) return;
+
+    const div = document.createElement('div');
+    div.className='card';
+    div.innerHTML = `
+      <strong>${exp.type}</strong> | Rs ${exp.amount} <br>
+      Date: ${exp.date} <br>
+      Receipt: ${exp.receiptName || '-'} <br>
+      <span class="status-badge status-${exp.status}">${exp.status}</span>
+    `;
+    div.onclick = ()=>openForm(i);
+    list.appendChild(div);
+  });
+  if(list.innerHTML==='') list.innerHTML='<p style="padding:15px;">No expenses found.</p>';
+}
+
+// Open modal
+function openForm(i=null){
+  editingIndex = i;
+  modal.style.display='flex';
+  let readOnly = false;
+
+  if(i!==null){
+    const exp = expenses[i];
+    expenseDate.value = exp.date;
+    expenseType.value = exp.type;
+    expenseAmount.value = exp.amount;
+
+    // Only Pending editable
+    if(exp.status!=='Pending') readOnly = true;
+  }else{
+    expenseDate.value = ''; // user picks date
+    expenseType.value = 'Transport';
+    expenseAmount.value = '';
+  }
+
+  const fields = [expenseDate, expenseType, expenseAmount];
+  fields.forEach(f=>f.disabled=readOnly);
+  submitBtn.disabled = readOnly;
+}
+
+// Submit
+submitBtn.onclick = ()=>{
+  const data = {
+    date: expenseDate.value,
+    type: expenseType.value,
+    amount: parseFloat(expenseAmount.value)||0,
+    receiptName: receiptFile.files[0]?receiptFile.files[0].name:'-',
+    status: editingIndex!==null ? expenses[editingIndex].status : 'Pending'
+  };
+  if(editingIndex!==null) expenses[editingIndex]=data;
+  else expenses.push(data);
+
+  localStorage.setItem('addedExpenses',JSON.stringify(expenses));
+  modal.style.display='none';
+  editingIndex=null;
+  render();
+};
+
+// Add / Close modal
+addBtn.onclick=()=>openForm();
+document.getElementById('closeBtn').onclick=()=>modal.style.display='none';
+
+// Filters
+filterBtn.onclick = ()=>filterBox.style.display = filterBox.style.display==='none'?'block':'none';
+filterStatus.onchange = ()=>{
+  currentStatusFilter = filterStatus.value;
+  render();
+};
+filterType.onchange = ()=>{
+  currentTypeFilter = filterType.value;
+  render();
+};
+
+// Initial render
+render();
+</script>
+</body>
+</html>
