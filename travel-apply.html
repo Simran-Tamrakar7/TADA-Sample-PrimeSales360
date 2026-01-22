@@ -302,12 +302,14 @@ function render(){
       const settleBtn = document.createElement('button');
       settleBtn.textContent='Proceed to Settle';
       settleBtn.className='settleBtn';
-      settleBtn.onclick = (e)=>{
-        e.stopPropagation(); // prevent modal open
-        // Save current travel to localStorage for postsettlement page
-        localStorage.setItem('settleTravel', JSON.stringify(t));
-        window.location.href='postsettlement.html';
-      };
+     // Add this inside the settleBtn.onclick
+settleBtn.onclick = (e) => {
+  e.stopPropagation(); // prevent modal open
+  const postData = { ...t, status: 'Pending' }; // pending for settlement
+  localStorage.setItem('settleTravel', JSON.stringify(postData));
+  window.location.href = 'postsettlement.html';
+};
+
       div.appendChild(settleBtn);
     }
 

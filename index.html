@@ -86,7 +86,7 @@
         case 'travel': iframeSrc = 'travel-apply.html'; break;
         case 'expenses': iframeSrc = 'expenses.html'; break;
         case 'advance': iframeSrc = 'advance.html'; break;
-        case 'settle': iframeSrc = 'postsettlement.html'; break;
+        case 'settle': iframeSrc = 'post.html'; break;
         case 'approval': iframeSrc = 'approval.html'; break;
         case 'more': iframeSrc = 'more.html'; break;
       }
@@ -94,7 +94,7 @@
       tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}" style="width:100%;height:80vh;border:none;"></iframe>`;
       currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
 
-      // highlight active tab
+      // highlight active taba
       tabButtons.forEach(b => b.classList.remove('active'));
       document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
 
