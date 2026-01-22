@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQs</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; color:#333; }
+.container { max-width: 900px; margin:auto; padding:20px; }
+h1 { color:#4CAF50; margin-bottom:15px; }
+h2 { color:#555; margin-top:20px; }
+.accordion { background:#fff; border-radius:8px; margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; padding:15px; }
+.accordion:hover { background:#f9f9f9; }
+.panel { padding:0 15px; display:none; background:#fafafa; border-top:1px solid #eee; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Frequently Asked Questions (FAQs)</h1>
+
+  <div class="accordion">How do I submit a travel request?</div>
+  <div class="panel">
+    <p>Go to the “My Travel Requests” page, click the + button, fill in the required details including travel type, purpose, duration, and advance if required, then click Submit.</p>
+  </div>
+
+  <div class="accordion">Can I claim expenses for approved travel?</div>
+  <div class="panel">
+    <p>Yes, only travels that have been Approved can have linked expenses submitted. Expenses must be supported with receipts and linked to the Travel ID.</p>
+  </div>
+
+  <div class="accordion">What documents are required for expense reimbursement?</div>
+  <div class="panel">
+    <p>All receipts and invoices must be attached. For TADA, the system calculates automatically, but receipts for transport, vehicle rental, or entertainment are mandatory.</p>
+  </div>
+
+  <div class="accordion">How do I settle advances?</div>
+  <div class="panel">
+    <p>After your travel is completed, submit all linked expenses. The system calculates net payable/receivable automatically for advance settlement.</p>
+  </div>
+
+  <div class="accordion">Who do I contact if my request is rejected?</div>
+  <div class="panel">
+    <p>Contact your manager or finance team directly to clarify the reason for rejection and next steps.</p>
+  </div>
+
+</div>
+
+<script>
+// Accordion functionality
+var acc = document.getElementsByClassName("accordion");
+for (var i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+  });
+}
+</script>
+
+</body>
+</html>

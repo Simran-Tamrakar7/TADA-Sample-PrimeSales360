@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expenses</title>
+<title>Expenses Linked to Travel</title>
 <style>
 body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
 h2,h3 { color:#333; }
@@ -72,6 +72,11 @@ button:disabled { background:#aaa; cursor:not-allowed; }
       <option>Other</option>
     </select>
 
+    <label>Related Travel</label>
+    <select id="linkedTravel">
+      <option value="">--Select Travel--</option>
+    </select>
+
     <label>Amount</label>
     <input type="number" id="expenseAmount" placeholder="Enter amount">
 
@@ -86,13 +91,14 @@ button:disabled { background:#aaa; cursor:not-allowed; }
 </div>
 
 <script>
-// Data
+// Fetch travels and expenses from localStorage
+let travelRequests = JSON.parse(localStorage.getItem('travelRequests')||'[]');
 let expenses = JSON.parse(localStorage.getItem('addedExpenses')||'[]');
+
 let editingIndex = null;
 let currentStatusFilter = 'All';
 let currentTypeFilter = 'All';
 
-// Elements
 const list = document.getElementById('expenseList');
 const modal = document.getElementById('formModal');
 const addBtn = document.getElementById('addBtn');
@@ -102,24 +108,38 @@ const expenseDate = document.getElementById('expenseDate');
 const expenseType = document.getElementById('expenseType');
 const expenseAmount = document.getElementById('expenseAmount');
 const receiptFile = document.getElementById('receiptFile');
+const linkedTravel = document.getElementById('linkedTravel');
 
 const filterBtn = document.getElementById('filterBtn');
 const filterBox = document.getElementById('filterBox');
 const filterStatus = document.getElementById('filterStatus');
 const filterType = document.getElementById('filterType');
 
+// Populate travel dropdown
+function populateTravelOptions() {
+  linkedTravel.innerHTML = '<option value="">--Select Travel--</option>';
+  travelRequests.forEach((t, i) => {
+    if(t.status === 'Approved') {
+      linkedTravel.innerHTML += `<option value="${i}">${t.travelType} (${t.fromDate} → ${t.toDate})</option>`;
+    }
+  });
+}
+
 // Render expenses
-function render(){
+function render() {
   list.innerHTML='';
   expenses.forEach((exp,i)=>{
     if(currentStatusFilter!=='All' && exp.status!==currentStatusFilter) return;
     if(currentTypeFilter!=='All' && exp.type!==currentTypeFilter) return;
+
+    const travelName = exp.travelIndex!==null && travelRequests[exp.travelIndex] ? travelRequests[exp.travelIndex].travelType : '-';
 
     const div = document.createElement('div');
     div.className='card';
     div.innerHTML = `
       <strong>${exp.type}</strong> | Rs ${exp.amount} <br>
       Date: ${exp.date} <br>
+      Travel: ${travelName} <br>
       Receipt: ${exp.receiptName || '-'} <br>
       <span class="status-badge status-${exp.status}">${exp.status}</span>
     `;
@@ -130,7 +150,8 @@ function render(){
 }
 
 // Open modal
-function openForm(i=null){
+function openForm(i=null) {
+  populateTravelOptions();
   editingIndex = i;
   modal.style.display='flex';
   let readOnly = false;
@@ -140,28 +161,29 @@ function openForm(i=null){
     expenseDate.value = exp.date;
     expenseType.value = exp.type;
     expenseAmount.value = exp.amount;
+    linkedTravel.value = exp.travelIndex!==null ? exp.travelIndex : '';
 
-    // Only Pending editable
     if(exp.status!=='Pending') readOnly = true;
-  }else{
-    expenseDate.value = ''; // user picks date
+  } else {
+    expenseDate.value = '';
     expenseType.value = 'Transport';
     expenseAmount.value = '';
+    linkedTravel.value = '';
   }
 
-  const fields = [expenseDate, expenseType, expenseAmount];
-  fields.forEach(f=>f.disabled=readOnly);
+  [expenseDate, expenseType, expenseAmount, linkedTravel].forEach(f=>f.disabled=readOnly);
   submitBtn.disabled = readOnly;
 }
 
-// Submit
+// Submit expense
 submitBtn.onclick = ()=>{
   const data = {
     date: expenseDate.value,
     type: expenseType.value,
     amount: parseFloat(expenseAmount.value)||0,
     receiptName: receiptFile.files[0]?receiptFile.files[0].name:'-',
-    status: editingIndex!==null ? expenses[editingIndex].status : 'Pending'
+    status: editingIndex!==null ? expenses[editingIndex].status : 'Pending',
+    travelIndex: linkedTravel.value !== '' ? parseInt(linkedTravel.value) : null
   };
   if(editingIndex!==null) expenses[editingIndex]=data;
   else expenses.push(data);
@@ -188,6 +210,7 @@ filterType.onchange = ()=>{
 };
 
 // Initial render
+populateTravelOptions();
 render();
 </script>
 </body>

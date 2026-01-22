@@ -126,19 +126,26 @@ th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
   <button id="submitBtn">Submit Settlement</button>
 </div>
 
+
+
 <script>
-// Load planned expenses & advance from Apply page
+let travelData = {}; // global so submit can access
+
+// Load travel data from "Proceed to Settle"
 window.addEventListener('load', ()=>{
-  const planned = JSON.parse(localStorage.getItem('plannedExpenses') || '{}');
-  const advanceTaken = parseFloat(localStorage.getItem('advanceTaken') || 0);
-  const travelInfo = JSON.parse(localStorage.getItem('travelInfo') || '{}');
+  travelData = JSON.parse(localStorage.getItem('settleTravel') || '{}');
+  if(!travelData || Object.keys(travelData).length===0){
+    alert('No travel data found!');
+    return;
+  }
 
   // Fill Trip Info
-  document.getElementById('travelType').value = travelInfo.travelType || '';
-  document.getElementById('purpose').value = travelInfo.purpose || '';
-  document.getElementById('travelDates').value = travelInfo.fromDate && travelInfo.toDate ? `${travelInfo.fromDate} to ${travelInfo.toDate}` : '';
+  document.getElementById('travelType').value = travelData.travelType || '';
+  document.getElementById('purpose').value = travelData.purpose || '';
+  document.getElementById('travelDates').value = travelData.fromDate && travelData.toDate ? `${travelData.fromDate} to ${travelData.toDate}` : '';
 
-  // Fill Planned (A)
+  // Planned expenses
+  const planned = travelData.plannedExpenses || {};
   document.getElementById('planTransport').value = planned.transport || 0;
   document.getElementById('planTADA').value = planned.tada || 0;
   document.getElementById('planVehicle').value = planned.vehicle || 0;
@@ -146,8 +153,9 @@ window.addEventListener('load', ()=>{
   document.getElementById('planTeam').value = planned.team || 0;
   document.getElementById('planOther').value = planned.other || 0;
 
-  // Only fill advance if taken
-  document.getElementById('totalAdvance').value = advanceTaken || 0;
+  // Advance
+  const advanceTaken = travelData.advanceTaken || 0;
+  document.getElementById('totalAdvance').value = advanceTaken;
 
   // Initialize Actual = 0
   ['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(type=>{
@@ -158,9 +166,7 @@ window.addEventListener('load', ()=>{
   calculateTotals();
 });
 
-// Calculate variance and Net Payable
-totalExpense
-
+// Calculate totals function (already exists)
 function calculateTotals(){
   const types = ['Transport','TADA','Vehicle','Guest','Team','Other'];
   let totalPlanned = 0, totalActual = 0;
@@ -185,11 +191,16 @@ function calculateTotals(){
 ['Transport','TADA','Vehicle','Guest','Team','Other'].forEach(type=>{
   document.getElementById('actual'+type).addEventListener('input', calculateTotals);
 });
-submitBtn.addEventListener('click', ()=>{
+
+// Submit settlement
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  calculateTotals(); // recalc before save
+
   const settlements = JSON.parse(localStorage.getItem('postSettlements')||'[]');
+
   settlements.push({
-    travelInfo: travelInfo,
-    plannedExpenses: planned,
+    travelInfo: travelData,
+    plannedExpenses: travelData.plannedExpenses || {},
     actualExpenses: {
       transport: parseFloat(document.getElementById('actualTransport').value)||0,
       tada: parseFloat(document.getElementById('actualTADA').value)||0,
@@ -198,14 +209,16 @@ submitBtn.addEventListener('click', ()=>{
       team: parseFloat(document.getElementById('actualTeam').value)||0,
       other: parseFloat(document.getElementById('actualOther').value)||0
     },
+    totalAdvance: parseFloat(document.getElementById('totalAdvance').value)||0,
+    totalExpense: parseFloat(document.getElementById('totalExpense').value)||0,
     netPayable: parseFloat(document.getElementById('netPayable').value)||0,
     status:'Pending'
   });
+
   localStorage.setItem('postSettlements', JSON.stringify(settlements));
   alert('Settlement submitted!');
 });
-
-
 </script>
+
 </body>
 </html>
