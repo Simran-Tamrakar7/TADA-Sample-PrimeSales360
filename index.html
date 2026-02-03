@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Travel & Reimbursement Portal</title>
   <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f9f9f9;
+    }
+
     .tab-bar {
       display: flex;
       overflow-x: auto;
@@ -50,6 +56,12 @@
     #tabContent {
       padding: 20px;
     }
+
+    iframe {
+      width: 100%;
+      height: 80vh;
+      border: none;
+    }
   </style>
 </head>
 
@@ -58,68 +70,83 @@
   <div class="breadcrumb">☰ > Live Section > Travel & Re-Imbursements > <span id="currentScreen">Dashboard</span></div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="dashboard">Dashboard <span class="badge"
-        id="dashboardBadge">2</span></button>
-    <button class="tab-btn" data-tab="travel">Travel</button>
-    <button class="tab-btn" data-tab="expenses">Expenses</button>
-    <button class="tab-btn" data-tab="advance">Advance</button>
-    <button class="tab-btn" data-tab="settle">Settle</button>
-    <button class="tab-btn" data-tab="approval">Approval</button>
-    <button class="tab-btn" data-tab="more">More</button>
+    <button class="tab-btn" data-tab="dashboard" data-roles="SESO,ACM,FINANCE">
+      Dashboard <span class="badge" id="dashboardBadge">2</span>
+    </button>
+    <button class="tab-btn" data-tab="travel" data-roles="SESO,ACM">Travel</button>
+    <button class="tab-btn" data-tab="advance" data-roles="FINANCE">Advance</button>
+    <button class="tab-btn" data-tab="settle" data-roles="FINANCE">Settle</button>
+    <button class="tab-btn" data-tab="approval" data-roles="ACM">Approval</button>
+    <button class="tab-btn" data-tab="more" data-roles="SESO,ACM">More</button>
   </div>
 
   <div id="tabContent"></div>
 
   <script>
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContent = document.getElementById('tabContent');
-    const currentScreen = document.getElementById('currentScreen');
+    // --- Load user from localStorage ---
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (!user) {
+      window.location.href = "login.html"; // redirect to login if not logged in
+    }
+    const userRole = user.role;
 
-    // Optional: hide FAB for certain tabs (not implemented here)
-    const fabActions = { dashboard: '+', travel: '+', expenses: '+', advance: '+', settle: '+', approval: '', more: '' };
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContent = document.getElementById("tabContent");
+    const currentScreen = document.getElementById("currentScreen");
 
+    let firstVisibleTab = null;
+
+    // --- Role-based tab filtering ---
+    tabButtons.forEach(btn => {
+      const allowedRoles = btn.dataset.roles.split(",");
+      if (!allowedRoles.includes(userRole)) {
+        btn.style.display = "none"; // hide tab if role not allowed
+      } else if (!firstVisibleTab) {
+        firstVisibleTab = btn.dataset.tab; // first tab for default load
+      }
+    });
+
+    // --- Load tab function with safety ---
     function loadTab(tab, subview = '') {
-      // determine iframe source
+      const button = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+      if (!button || button.style.display === "none") return; // prevent unauthorized access
+
+      // Determine iframe source
       let iframeSrc = '';
       switch (tab) {
         case 'dashboard': iframeSrc = 'dashboard.html'; break;
         case 'travel': iframeSrc = 'travel-apply.html'; break;
-        case 'expenses': iframeSrc = 'expenses.html'; break;
         case 'advance': iframeSrc = 'advance.html'; break;
         case 'settle': iframeSrc = 'post.html'; break;
         case 'approval': iframeSrc = 'approval.html'; break;
         case 'more': iframeSrc = 'more.html'; break;
       }
 
-      tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}" style="width:100%;height:80vh;border:none;"></iframe>`;
+      tabContent.innerHTML = `<iframe id="tabIframe" src="${iframeSrc}"></iframe>`;
       currentScreen.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
 
-      // highlight active taba
+      // Highlight active tab
       tabButtons.forEach(b => b.classList.remove('active'));
-      document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
+      button.classList.add('active');
 
-      // wait for iframe load to trigger subview
+      // Optional: trigger subview function in iframe
       const iframe = document.getElementById('tabIframe');
       iframe.onload = () => {
-        if (subview && iframe.contentWindow) {
-          if (subview === 'apply' && typeof iframe.contentWindow.openForm === 'function') {
-            iframe.contentWindow.openForm();
-          }
-          if (subview === 'addExpense' && typeof iframe.contentWindow.openForm === 'function') {
-            iframe.contentWindow.openForm();
-          }
+        if (subview && iframe.contentWindow && typeof iframe.contentWindow.openForm === 'function') {
+          iframe.contentWindow.openForm();
         }
       };
     }
 
+    // --- Attach click events to tabs ---
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => loadTab(btn.dataset.tab));
     });
 
-    // default load dashboard
-    loadTab('dashboard');
-
-    window.loadTab = loadTab; // make it globally accessible
+    // --- Load first allowed tab automatically ---
+    if (firstVisibleTab) {
+      loadTab(firstVisibleTab);
+    }
   </script>
 </body>
 

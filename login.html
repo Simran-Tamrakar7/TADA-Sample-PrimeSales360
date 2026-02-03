@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+    }
+
+    .login-container {
+      background: #ffffff;
+      width: 320px;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .login-container h2 {
+      margin: 0 0 20px;
+      text-align: center;
+      color: #111827;
+    }
+
+    .login-container input,
+    .login-container select,
+    .login-container button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .login-container input,
+    .login-container select {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+    }
+
+    .login-container button {
+      background: #111827;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .login-container button:hover {
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <h2>System Login</h2>
+
+    <input
+      type="text"
+      id="username"
+      placeholder="Enter your name"
+      autocomplete="off"
+    />
+
+    <select id="role">
+      <option value="">Select Role</option>
+      <option value="SESO">SESO / Normal User</option>
+      <option value="ACM">ACM / Supervisor</option>
+      <option value="FINANCE">Finance</option>
+    </select>
+
+    <button onclick="handleLogin()">Login</button>
+  </div>
+
+  <script>
+    function handleLogin() {
+      const name = document.getElementById("username").value.trim();
+      const role = document.getElementById("role").value;
+
+      if (!name || !role) {
+        alert("Please enter your name and select a role.");
+        return;
+      }
+
+      const user = {
+        id: "U" + Date.now(),
+        name: name,
+        role: role
+      };
+
+      localStorage.setItem("currentUser", JSON.stringify(user));
+
+      // redirect to index.html
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>
